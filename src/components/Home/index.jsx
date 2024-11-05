@@ -26,7 +26,7 @@ export default function Home() {
       });
   }, []);
 
-  if (loading) {
+  if (  loading) {
     return <Loading />;
   }
 

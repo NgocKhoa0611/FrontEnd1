@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="fixed w-full h-full bg-[#000000df] top-0 z-50">
+    <div className="fixed w-full h-full bg-black top-0 z-50">
       <div className="socket">
         <div className="gel center-gel">
           <div className="hex-brick h1"></div>

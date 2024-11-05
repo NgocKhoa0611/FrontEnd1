@@ -1,95 +1,112 @@
-const ProductDetail = ({ product }) => {
+import React, { useState } from "react";
+// eslint-disable-next-line no-unused-vars
+import { Link, useNavigate } from "react-router-dom";
+import "./index.css";
+
+const ProductDetails = ({ product = {} }) => {
+  const {
+    image = "https://bizweb.dktcdn.net/thumb/1024x1024/100/448/660/products/image1685004991851-375d0df6-8520-4f33-935f-dca1a2b4ac3a.png?v=1689517174680",
+    title = "Áo T-Shirts BONIK Authentic White",
+    price = 295000,
+    description = "Áo Thun của Bonik là một sự kiết hợp hoàn hảo giữa phong cách năng động và thoải mái. Dược làm từ chất liệu thun gân co giãn, áo mang đến cảm giác êm ái và linh hoạt cho cơ thể. Đường may viền chắc chắn và ấn tượng giúp áo luôn giữ form và tạo điểm nhấn thời trang.",
+  } = product;
+
+  const colorOptions = [
+    { name: 'White', image: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/448/660/products/image1685004991851-375d0df6-8520-4f33-935f-dca1a2b4ac3a.png?v=1689517174680' },
+    { name: 'Black', image: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/448/660/products/image1685004991851-375d0df6-8520-4f33-935f-dca1a2b4ac3a.png?v=1689517174680' },
+    { name: 'Blue', image: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/448/660/products/image1685004991851-375d0df6-8520-4f33-935f-dca1a2b4ac3a.png?v=1689517174680' },
+  ];
+  
+  const [selectedSize, setSelectedSize] = useState("M");
+  const [selectedColor, setSelectedColor] = useState("White");
+  const [quantity, setQuantity] = useState(1);
+  const navigate = useNavigate();
+
+  const handleSizeSelect = (size) => setSelectedSize(size);
+  const handleColorSelect = (color) => setSelectedColor(color);
+  const incrementQuantity = () => setQuantity(quantity + 1);
+  const decrementQuantity = () => {
+    if (quantity > 1) setQuantity(quantity - 1);
+  };
+
+  const handleAddToCart = () => {
+    // Logic for adding product to cart (e.g., updating cart state or localStorage)
+    console.log("Product added to cart", { product, selectedSize, selectedColor, quantity });
+  };
+
+  const handleBuyNow = () => {
+    navigate("/checkout");
+  };
+
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 py-8">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row -mx-4">
-          <div className="md:flex-1 px-4">
-            <div className="h-[460px] rounded-lg bg-gray-300 dark:bg-gray-700 mb-4">
-              <img
-                className="w-full h-full object-cover"
-                src="https://cdn.pixabay.com/photo/2020/05/22/17/53/mockup-5206355_960_720.jpg"
-                alt="Product Image"
-              />
+    <div className="product-detail">
+      <div className="product-detail-top">
+        <div className="product-image">
+          <img src={image} alt={title} />
+          <div className="product-description">
+            <h3>Thông tin sản phẩm</h3>
+            <p>{description}</p>
+          </div>
+        </div>
+
+        <div className="product-info">
+          <h1>{title}</h1>
+          <p className="price">
+            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)}
+          </p>
+
+          <div className="options">
+            <div className="size-selection">
+              <h4>Kích thước:</h4>
+              {["S", "M", "L", "XL"].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => handleSizeSelect(size)}
+className={selectedSize === size ? "active" : ""}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+            <div className="color-selection">
+              <h4>Màu Sắc:</h4>
+              <div className="color-options">
+                {colorOptions.map((option) => (
+                  <button
+                    key={option.name} 
+                    onClick={() => handleColorSelect(option.name)} 
+                    className={`color-button ${selectedColor === option.name ? 'active' : ''}`}
+                  >
+                    <img src={option.image} alt={option.name} className="color-image" />
+                    <span className="color-name">{option.name}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-          <div className="md:flex-1 px-4">
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-              Product Name
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sed
-              ante justo. Integer euismod libero id mauris malesuada tincidunt.
-            </p>
-            <div className="flex mb-4">
-              <div className="mr-4">
-                <span className="font-bold text-gray-700 dark:text-gray-300">
-                  Price:
-                </span>
-                <span className="text-gray-600 dark:text-gray-300">$29.99</span>
+
+          <div className="buy-container">
+            <h4>Số lượng:</h4>
+            <div className="buy-column">
+              <div className="quantity-selector"> 
+                <button className="decrement" onClick={decrementQuantity}>-</button>
+                <span className="quantity">{quantity}</span>
+                <button className="increment" onClick={incrementQuantity}>+</button>
               </div>
-              <div>
-                <span className="font-bold text-gray-700 dark:text-gray-300">
-                  Availability:
-                </span>
-                <span className="text-gray-600 dark:text-gray-300">
-                  In Stock
-                </span>
+              <div className="buttons">
+                <button className="buy-now" onClick={handleBuyNow}>Mua Ngay</button>
+                <button className="add-to-cart" onClick={handleAddToCart}>Thêm giỏ hàng</button>
               </div>
             </div>
-            <div className="mb-4">
-              <span className="font-bold text-gray-700 dark:text-gray-300">
-                Select Color:
-              </span>
-              <div className="flex items-center mt-2">
-                <button className="w-6 h-6 rounded-full bg-gray-800 dark:bg-gray-200 mr-2"></button>
-                <button className="w-6 h-6 rounded-full bg-red-500 dark:bg-red-700 mr-2"></button>
-                <button className="w-6 h-6 rounded-full bg-blue-500 dark:bg-blue-700 mr-2"></button>
-                <button className="w-6 h-6 rounded-full bg-yellow-500 dark:bg-yellow-700 mr-2"></button>
-              </div>
-            </div>
-            <div className="mb-4">
-              <span className="font-bold text-gray-700 dark:text-gray-300">
-                Select Size:
-              </span>
-              <div className="flex items-center mt-2">
-                <button className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-white py-2 px-4 rounded-full font-bold mr-2 hover:bg-gray-400 dark:hover:bg-gray-600">
-                  S
-                </button>
-                <button className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-white py-2 px-4 rounded-full font-bold mr-2 hover:bg-gray-400 dark:hover:bg-gray-600">
-                  M
-                </button>
-                <button className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-white py-2 px-4 rounded-full font-bold mr-2 hover:bg-gray-400 dark:hover:bg-gray-600">
-                  L
-                </button>
-                <button className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-white py-2 px-4 rounded-full font-bold mr-2 hover:bg-gray-400 dark:hover:bg-gray-600">
-                  XL
-                </button>
-                <button className="bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-white py-2 px-4 rounded-full font-bold mr-2 hover:bg-gray-400 dark:hover:bg-gray-600">
-                  XXL
-                </button>
-              </div>
-            </div>
-            <div>
-              <span className="font-bold text-gray-700 dark:text-gray-300">
-                Product Description:
-              </span>
-              <p className="text-gray-600 dark:text-gray-300 text-sm mt- line-clamp-3">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed sed
-                ante justo. Integer euismod libero id mauris malesuada
-                tincidunt.Lorem ipsum dolor sit amet, consectetur adipiscing
-                elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Sed sed ante justo. Integer euismod libero id mauris malesuada
-                tincidunt.Lorem ipsum dolor sit amet, consectetur adipiscing
-                elit.
-              </p>
-            </div>
-            <div className="flex -mx-2 mb-4">
-              <div className="w-full px-2 mt-5">
-                <button className="w-full bg-gray-900 dark:bg-gray-600 text-white py-2 px-4 rounded-full font-bold hover:bg-gray-800 dark:hover:bg-gray-700">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
+          </div>
+
+          <div className="contact-info">
+            <p>GỌI ĐỂ MUA HÀNG NHANH HƠN</p>
+            <h2>0123456789</h2>
+            <p>Chính sách bán hàng</p>
+            <p>
+              <i className="fa-solid fa-truck-fast"></i> Chính sách bán hàng 
+            </p> 
           </div>
         </div>
       </div>
@@ -97,4 +114,4 @@ const ProductDetail = ({ product }) => {
   );
 };
 
-export default ProductDetail;
+export default ProductDetails;

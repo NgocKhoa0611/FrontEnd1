@@ -9,7 +9,7 @@ const Navbar = () => {
 
   useEffect(() => {
     axios
-      .get("https://672768ed270bd0b975523606.mockapi.io/category")
+      .get("http://localhost:8000/category")
       .then((response) => {
         const groupedCategories = response.data.reduce((acc, item) => {
           if (!acc[item.category_parent_id]) {
@@ -22,6 +22,7 @@ const Navbar = () => {
           return acc;
         }, {});
         setCategories(groupedCategories);
+        
         setLoading(false);
       })
       .catch((error) => {
@@ -40,31 +41,28 @@ const Navbar = () => {
             <ul
               className={`${
                 MobileMenu ? "nav-links-MobileMenu" : "hidden md:flex"
-              } flex-col md:flex-row `}
+              } flex-col md:flex-row`}
               onClick={() => setMobileMenu(false)}
             >
               <li className="m-0 block min-w-[90px] text-center">
                 <Link to="/">Trang chủ</Link>
               </li>
-              {Object.keys(categories).map((categoryId) => (
-                <li
-                  key={categoryId}
-                  className="relative group m-0 block min-w-[90px] text-center cursor-pointer"
-                >
-                  <span className=" min-w-[50px]">
-                    {categoryId === "1"
+              {Object.keys(categories).map((parentId) => (
+                <li key={parentId} className="relative group m-0 block min-w-[90px] text-center cursor-pointer">
+                  <span className="min-w-[50px]">
+                    {parentId === "1"
                       ? "Áo"
-                      : categoryId === "2"
+                      : parentId === "2"
                       ? "Quần"
-                      : categoryId === "3"
+                      : parentId === "3"
                       ? "Phụ kiện"
-                      : categoryId === "4"
+                      : parentId === "4"
                       ? "Giày"
                       : "Khác"}
                   </span>
                   <ul className="absolute top-12 left-0 mt-2 overflow-hidden hidden group-hover:block bg-white shadow-lg rounded-lg min-w-[150px]">
-                    {categories[categoryId].map((category, index) => (
-                      <li key={index} className="m-0">
+                    {categories[parentId].map((category) => (
+                      <li key={category.id} className="m-0">
                         <Link
                           to={`/category/${category.id}`}
                           className="whitespace-nowrap text-left w-full block px-4 hover:bg-gray-200"
@@ -98,3 +96,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
