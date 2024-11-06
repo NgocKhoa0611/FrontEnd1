@@ -6,11 +6,11 @@ import * as Yup from 'yup';
 
 const Login = () => {
   const formik = useFormik({
-    initialValues:{
-      email:'',
-      password:'',
+    initialValues: {
+      email: '',
+      password: '',
     },
-    validationSchema:Yup.object({
+    validationSchema: Yup.object({
       email: Yup.string().email('Email không hợp lệ').required('Bắt buộc'),
       password: Yup.string().required('Bắt buộc'),
     }),
