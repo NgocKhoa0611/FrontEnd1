@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import React, { useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -33,11 +32,11 @@ const Register = () => {
           email: values.email,
           password: values.password,
         });
-        setError(null); 
+        setError(null);
         setSuccess(true);
       } catch (error) {
         if (error.response && error.response.data.message === "Email đã tồn tại") {
-          setError("Email đã tồn tại. Vui lòng thử một email khác."); 
+          setError("Email đã tồn tại. Vui lòng thử một email khác.");
         } else {
           setError("Đã xảy ra lỗi. Vui lòng thử lại sau.");
         }
@@ -123,7 +122,7 @@ const Register = () => {
               </button>
             </form>
 
-{success && (
+            {success && (
               <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                   <h3 className="text-lg font-semibold text-green-600">Đăng ký thành công!</h3>
@@ -142,4 +141,4 @@ const Register = () => {
 };
 
 export default Register;
-     
+

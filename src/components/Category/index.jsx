@@ -1,6 +1,7 @@
 import Product from "../ui/Product";
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import axios from 'axios';
 
 export default function Category() {
   const { id } = useParams();
@@ -9,21 +10,18 @@ export default function Category() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`http://localhost:8000/category/${id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setCategoryName(data.category_name);
-        console.log(categoryName);
-
+    axios.get(`http://localhost:8000/category/${id}`)
+      .then((response) => {
+        setCategoryName(response.data.category_name);
+        console.log(response.data.category_name);
       })
       .catch((error) => {
         console.error("Error fetching category details:", error);
       });
 
-    fetch(`http://localhost:8000/product/category/${id}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setProducts(data);
+    axios.get(`http://localhost:8000/product/category/${id}`)
+      .then((response) => {
+        setProducts(response.data);
         setLoading(false);
       })
       .catch((error) => {

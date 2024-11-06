@@ -22,7 +22,7 @@ const Navbar = () => {
           return acc;
         }, {});
         setCategories(groupedCategories);
-        
+
         setLoading(false);
       })
       .catch((error) => {
@@ -39,27 +39,30 @@ const Navbar = () => {
             <div>Đang tải...</div>
           ) : (
             <ul
-              className={`${
-                MobileMenu ? "nav-links-MobileMenu" : "hidden md:flex"
-              } flex-col md:flex-row`}
+              className={`${MobileMenu ? "nav-links-MobileMenu" : "hidden md:flex"
+                } flex-col md:flex-row`}
               onClick={() => setMobileMenu(false)}
             >
               <li className="m-0 block min-w-[90px] text-center">
                 <Link to="/">Trang chủ</Link>
               </li>
               {Object.keys(categories).map((parentId) => (
-                <li key={parentId} className="relative group m-0 block min-w-[90px] text-center cursor-pointer">
-                  <span className="min-w-[50px]">
+                <li
+                  key={parentId}
+                  className="relative group m-0 block min-w-[90px] text-center cursor-pointer"
+                >
+                  <Link className="min-w-[50px]"
+                  >
                     {parentId === "1"
                       ? "Áo"
                       : parentId === "2"
-                      ? "Quần"
-                      : parentId === "3"
-                      ? "Phụ kiện"
-                      : parentId === "4"
-                      ? "Giày"
-                      : "Khác"}
-                  </span>
+                        ? "Quần"
+                        : parentId === "3"
+                          ? "Phụ kiện"
+                          : parentId === "4"
+                            ? "Giày"
+                            : "Khác"}
+                  </Link>
                   <ul className="absolute top-12 left-0 mt-2 overflow-hidden hidden group-hover:block bg-white shadow-lg rounded-lg min-w-[150px]">
                     {categories[parentId].map((category) => (
                       <li key={category.id} className="m-0">
@@ -93,7 +96,7 @@ const Navbar = () => {
       </div>
     </header>
   );
-};
+}
 
 export default Navbar;
 

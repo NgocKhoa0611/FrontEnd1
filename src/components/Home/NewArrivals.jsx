@@ -44,17 +44,17 @@ const NewArrivals = () => {
             <i className="fa-solid fa-caret-right"></i>
           </div>
         </div>
-        
+
         {loading ? (
-          <div>Loading...</div> // Loading message while fetching data
+          <div>Loading...</div>
         ) : (
           <Slider {...settings}>
             {shopItems.length > 0 ? (
               shopItems.map((item) => {
-                return <Product key={item.id} shopItems={item} />; // Use unique id as key
+                return <Product key={item.id} shopItems={item} />;
               })
             ) : (
-              <div>Không có sản phẩm mới nào.</div> // Message if no new products are available
+              <div>Không có sản phẩm mới nào.</div>
             )}
           </Slider>
         )}
