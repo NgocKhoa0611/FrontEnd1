@@ -1,3 +1,4 @@
+// eslint-disable-next-line react/prop-types
 export default function Product({ shopItems = {} }) {
   const { product_name, price, price_promotion, detail = [] } = shopItems;
   const imageUrl = `http://localhost:8000/img/${detail[0]?.productImage?.img_url || 'default-image.jpg'}`;
