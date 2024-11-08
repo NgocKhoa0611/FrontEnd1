@@ -1,13 +1,37 @@
+import { Link } from "react-router-dom";
+
 // eslint-disable-next-line react/prop-types
 export default function Product({ shopItems = {} }) {
-  const { product_name, price, price_promotion, detail = [] } = shopItems;
+  const { product_id, product_name, price, price_promotion, detail = [] } = shopItems;
   const imageUrl = `http://localhost:8000/img/${detail[0]?.productImage?.img_url || 'default-image.jpg'}`;
+
+  const addToCart = () => {
+    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+    const itemIndex = existingCart.findIndex(item => item.product_id === product_id);
+
+    if (itemIndex !== -1) {
+      existingCart[itemIndex] = { ...existingCart[itemIndex], quantity: existingCart[itemIndex].quantity + 1 };
+    } else {
+      existingCart.push({
+        product_id,
+        product_name,
+        price,
+        quantity: 1,
+        image: imageUrl,
+      });
+    }
+
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+    alert(`${product_name} đã thêm vào giỏ hàng`);
+  };
 
   return (
     <div className="box">
       <div className="product mtop">
         <div className="img">
-          <img src={imageUrl} alt="" />
+          <Link to={`/product/${product_id}`}>
+            <img src={imageUrl} alt={product_name} />
+          </Link>
         </div>
         <div className="product-details">
           <h5 style={{ fontSize: '0.85rem', textAlign: 'center', margin: '0' }}>
@@ -20,7 +44,7 @@ export default function Product({ shopItems = {} }) {
               </h5>
             )}
             <h4>{price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ</h4>
-            <button>
+            <button onClick={addToCart}>
               <i className="fa fa-plus"></i>
             </button>
           </div>

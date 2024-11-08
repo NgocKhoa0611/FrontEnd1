@@ -12,7 +12,7 @@ const Shop = () => {
     dots: false,
     infinite: true,
     slidesToShow: 4,
-    slidesToScroll: 1,
+    slidesToScroll: 4,
     autoplay: true,
   };
 
