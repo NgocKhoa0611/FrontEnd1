@@ -4,6 +4,7 @@ import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
+import { API_URL } from "../../../configs/varibles";
 
 const Login = () => {
   const formik = useFormik({
@@ -18,7 +19,7 @@ const Login = () => {
 
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
-        const res = await axios.post('http://localhost:8000/auth/login', {
+        const res = await axios.post(`http://localhost:8000/auth/login`, {
           email: values.email,
           password: values.password,
         });

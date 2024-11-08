@@ -1,30 +1,56 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import logo from "../../assets/images/logo.svg";
 import { Link } from "react-router-dom";
 
 const Search = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [user, setUser] = useState(null);
 
-  // Check if token exists in cookies
   useEffect(() => {
     const token = document.cookie.split("; ").find(row => row.startsWith("token="));
-    if (token) setIsLoggedIn(true);
+    if (token) {
+      setIsLoggedIn(true);
+      fetchUser();
+    }
   }, []);
 
-  // Handle logout
-  const handleLogout = () => {
-    document.cookie = "token=; path=/; max-age=0"; // Remove token
-    setIsLoggedIn(false);
-    window.location.href = "/login"; // Redirect to login
+  const fetchUser = async () => {
+    try {
+      const token = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) return;
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      console.log(payload);
+      const userId = payload.id;
+
+      const response = await axios.get(`http://localhost:8000/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setUser(response.data);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
   };
 
-  // Toggle dropdown visibility
+
+  const handleLogout = () => {
+    document.cookie = "token=; path=/; max-age=0";
+    setIsLoggedIn(false);
+    window.location.href = "/login";
+  };
+
   const toggleDropdown = () => {
     setShowDropdown(!showDropdown);
   };
 
-  // Add scroll event listener
   useEffect(() => {
     const onScroll = () => {
       const search = document.querySelector(".search");
@@ -37,7 +63,7 @@ const Search = () => {
   }, []);
 
   return (
-    <section className="search">
+    <section section className="search" >
       <div className="container c_flex">
         <Link className="logo width" to="/">
           <img src={logo} alt="Logo" />
@@ -50,10 +76,10 @@ const Search = () => {
         </div>
 
         <div className="icon f_flex width">
-          {isLoggedIn ? (
+          {isLoggedIn && user ? (
             <div className="user-menu relative group m-0 block min-w-[90px] text-center cursor-pointer">
               <img
-                src="" // Replace with actual avatar URL
+                src={user.avatar ? `http://localhost:8000/avatar/${user.avatar}` : "http://localhost:8000/img/default-avatar.png"}
                 alt="User Avatar"
                 className="user-avatar"
                 onClick={toggleDropdown}
@@ -71,8 +97,6 @@ const Search = () => {
                   </button>
                 </div>
               )}
-
-
             </div>
           ) : (
             <div className="login">
@@ -88,9 +112,8 @@ const Search = () => {
           </div>
         </div>
       </div>
-    </section>
+    </section >
   );
 };
 
 export default Search;
-

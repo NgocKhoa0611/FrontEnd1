@@ -141,6 +141,10 @@ button {
   border-radius: 8px;
   box-shadow: rgb(3 0 71 / 9%) 0px 1px 3px;
   margin: 10px;
+  height: 350px;
+}
+.img img{
+  height: 200px;
 }
 .product h3 {
   font-weight: 400;
@@ -964,5 +968,6 @@ footer li {
   display: flex;
   flex-direction: column;
   width: 120px; /* Adjust width as needed */
+  z-index: 1000;
 }
 
