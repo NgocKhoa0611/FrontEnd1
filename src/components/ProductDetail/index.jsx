@@ -54,10 +54,6 @@ const ProductDetails = () => {
         <div className="product-image">
           <img src={`${API_URL}/img/${product.detail[0]?.productImage?.img_url}`} alt={product.product_name} />
 
-          <div className="product-description">
-            <h3>Thông tin sản phẩm</h3>
-            <p>{product.detail[0]?.description || "No description available"}</p>
-          </div>
         </div>
 
         <div className="product-info">
@@ -67,18 +63,20 @@ const ProductDetails = () => {
           </p>
 
           <div className="options">
-            <div className="size-selection">
-              <h4>Kích thước:</h4>
-              {["S", "M", "L", "XL"].map((size) => (
-                <button
-                  key={size}
-                  onClick={() => handleSizeSelect(size)}
-                  className={selectedSize === size ? "active" : ""}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
+          <div className="size-selection">
+            <h4>Kích thước:</h4>
+            {["S", "M", "L", "XL"].map((size) => (
+              <button
+                key={size}
+                onClick={() => handleSizeSelect(size)}
+                className={`${
+                  selectedSize === size ? "bg-blue-500 text-black" : "bg-gray-200 text-black"
+                } p-2 m-1 rounded`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
             <div className="color-selection">
               <h4>Màu Sắc:</h4>
               <div className="color-options">
@@ -108,6 +106,11 @@ const ProductDetails = () => {
                 <button className="add-to-cart" onClick={handleAddToCart}>Thêm giỏ hàng</button>
               </div>
             </div>
+
+            <div className="product-description">
+            <h3>Thông tin sản phẩm</h3>
+            <p>{product.detail[0]?.description || "No description available"}</p>
+          </div>
           </div>
 
           <div className="contact-info">
@@ -120,6 +123,76 @@ const ProductDetails = () => {
           </div>
         </div>
       </div>
+
+      <div className="content-cmt mt-10 px-5">
+        <h3 className="text-xl font-semibold">Bình luận</h3>
+        <div className="comment-form mt-5">
+          <textarea
+            placeholder="Thêm bình luận..."
+            className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          ></textarea>
+          <button className="mt-3 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none">
+            Gửi
+          </button>
+        </div>
+
+  <div className="comments-list mt-5">
+    {product.comments && product.comments.length > 0 ? (
+      product.comments.map((comment, index) => (
+        <div key={index} className="comment-item mb-6">
+          <div className="comment-header flex items-center mb-3">
+            <img
+              src={comment.user.avatar || "https://via.placeholder.com/40"}
+              alt="User Avatar"
+              className="w-10 h-10 rounded-full mr-4"
+            />
+            <div className="comment-user flex flex-col">
+              <span className="font-semibold text-sm">{comment.user.name}</span>
+              <span className="text-xs text-gray-500">{comment.timestamp}</span>
+            </div>
+          </div>
+          <p className="comment-text text-sm text-gray-800 mb-3">{comment.text}</p>
+
+          <div className="comment-actions flex items-center">
+            <button className="like-btn text-blue-600 hover:text-blue-700 text-sm flex items-center mr-5">
+              <i className="fa fa-thumbs-up mr-2"></i> {comment.likes}
+            </button>
+            <button className="reply-btn text-blue-600 hover:text-blue-700 text-sm flex items-center">
+              <i className="fa fa-reply mr-2"></i> Trả lời
+            </button>
+          </div>
+
+          {/* Nếu có trả lời, hiển thị chúng */}
+          {comment.replies && comment.replies.length > 0 && (
+            <div className="replies mt-4 pl-10">
+              {comment.replies.map((reply, idx) => (
+                <div key={idx} className="reply-item mb-4">
+                  <div className="reply-header flex items-center mb-2">
+                    <img
+                      src={reply.user.avatar || "https://via.placeholder.com/40"}
+                      alt="User Avatar"
+                      className="w-8 h-8 rounded-full mr-3"
+                    />
+                    <div className="reply-user flex flex-col">
+                      <span className="font-semibold text-xs">{reply.user.name}</span>
+                      <span className="text-xs text-gray-500">{reply.timestamp}</span>
+                    </div>
+                  </div>
+                  <p className="reply-text text-xs text-gray-700">{reply.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ))
+    ) : (
+      <p className="text-gray-500">Chưa có bình luận nào.</p>
+    )}
+  </div>
+  
+</div>
+
+
     </div>
   );
 };
