@@ -9,6 +9,7 @@ import ProductDetail from "./pages/ProductDetail.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Contact from "./pages/Contact.jsx";
 import Category from "./pages/Category.jsx";
+import Checkout from "./components/Checkout/index.jsx";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/category/:id" element={<Category />} />
+        <Route path="/checkout" element={<Checkout />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

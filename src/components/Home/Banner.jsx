@@ -4,8 +4,8 @@ import "slick-carousel/slick/slick-theme.css";
 
 const images = [
   "/images/banner_home.jpg",
-  "/images/banner_home.jpg",
-  "/images/banner_home.jpg",
+  "/images/banner_home1.jpg",
+  "/images/banner_home2.jpg",
   "/images/banner_home.jpg",
   "/images/banner_home.jpg",
 ];

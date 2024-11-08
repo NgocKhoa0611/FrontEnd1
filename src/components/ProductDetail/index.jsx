@@ -38,11 +38,47 @@ const ProductDetails = () => {
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
+  // Handle adding the product to the cart
   const handleAddToCart = () => {
-    console.log("Product added to cart", { product, selectedSize, selectedColor, quantity });
+    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // Check if the product is already in the cart
+    const existingProductIndex = existingCart.findIndex(
+      (item) =>
+        item.product_id === product.product_id &&
+        item.size === selectedSize &&
+        item.color === selectedColor
+    );
+
+    if (existingProductIndex !== -1) {
+      // If the product exists, update the quantity
+      existingCart[existingProductIndex].quantity += quantity;
+    } else {
+      // If the product does not exist, add it to the cart
+      existingCart.push({
+        product_id: product.product_id,
+        product_name: product.product_name,
+        price: product.price,
+        image: `${API_URL}/img/${product.detail[0]?.productImage?.img_url}`,
+        size: selectedSize,
+        color: selectedColor,
+        quantity,
+      });
+    }
+
+    // Save the updated cart to localStorage
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+    console.log("Product added to cart", {
+      product_name: product.product_name,
+      selectedSize,
+      selectedColor,
+      quantity,
+    });
   };
 
   const handleBuyNow = () => {
+    // Add product to cart before navigating to checkout
+    handleAddToCart();
     navigate("/checkout");
   };
 
