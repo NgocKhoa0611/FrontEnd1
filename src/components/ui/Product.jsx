@@ -29,17 +29,17 @@ export default function Product({ shopItems = {} }) {
     <div className="box">
       <div className="product mtop">
         <div className="img">
-          <Link to={`/product/${product_id}`}>
-            <img src={imageUrl} alt={product_name} />
+          <Link className="" to={`/product/${product_id}`}>
+            <img   src={imageUrl} alt={product_name} />
           </Link>
         </div>
         <div className="product-details">
-          <h5 style={{ fontSize: '0.85rem', textAlign: 'center', margin: '0' }}>
+          <h5 className="text-center text-sm font-medium truncate" style={{ margin: '0' }}>
             {product_name}
           </h5>
           <div className="price">
             {price_promotion > 0 && (
-              <h5 style={{ textDecoration: 'line-through', color: 'gray' }}>
+              <h5 className="line-through text-gray-500">
                 {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
               </h5>
             )}
