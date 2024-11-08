@@ -18,7 +18,7 @@ export default function Product({ shopItems = {} }) {
                 {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
               </h5>
             )}
-            <h4>{price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ</h4>
+            <h4>{price_promotion.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ</h4>
             <button>
               <i className="fa fa-plus"></i>
             </button>

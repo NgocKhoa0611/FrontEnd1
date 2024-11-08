@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import axios from 'axios';
 
 const Login = () => {
   const formik = useFormik({
@@ -14,9 +15,36 @@ const Login = () => {
       email: Yup.string().email('Email không hợp lệ').required('Bắt buộc'),
       password: Yup.string().required('Bắt buộc'),
     }),
-    onSubmit: (values) => {
-      console.log("Form values:", values);
-    },
+
+    onSubmit: async (values, { setSubmitting, setFieldError }) => {
+      try {
+        const res = await axios.post('http://localhost:8000/auth/login', {
+          email: values.email,
+          password: values.password,
+        });
+
+        if (res.status !== 200) {
+          throw new Error(res.data.message || 'Đăng nhập thất bại');
+        }
+        // Lưu token vào cookie
+        const data = res.data;
+        document.cookie = `token=${data.token}; path=/; max-age=${60 * 60}`;
+
+        // Chuyển trang theo role
+        const token = data.token;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role === 'admin') {
+          window.location.href = 'http://localhost:5173';
+        } else {
+          window.location.href = '/';
+        }
+      } catch (error) {
+        setFieldError('general', error.response?.data?.message || error.message);
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
   })
   return (
     <div className="relative h-screen bg-gray-50 overflow-hidden">

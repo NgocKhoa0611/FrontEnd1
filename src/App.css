@@ -938,3 +938,31 @@ footer li {
     background: #ff8c00;
   }
 }
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centers content horizontally */
+  position: relative; /* Allows dropdown positioning relative to user-menu */
+}
+
+.user-avatar {
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+}
+
+/* Optional: Style the dropdown menu */
+.dropdown-menu {
+  position: absolute;
+  top: 100%; /* Positions below the avatar */
+  right: 0; /* Aligns dropdown to the right edge of user-menu */
+  background-color: #fff;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  width: 120px; /* Adjust width as needed */
+}
+
