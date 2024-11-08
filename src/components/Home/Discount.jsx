@@ -13,14 +13,14 @@ const Discount = () => {
     dots: false,
     infinite: true,
     slidesToShow: 4,
-    slidesToScroll: 1,
+    slidesToScroll: 4,
     autoplay: true,
   };
 
   useEffect(() => {
     const fetchDiscountedProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/product/promotion");
+        const response = await axios.get("http://localhost:8000/product");
         setDiscountedProducts(response.data);
       } catch (error) {
         console.error("Error fetching discounted products:", error);

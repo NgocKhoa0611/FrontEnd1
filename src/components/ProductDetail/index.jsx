@@ -1,26 +1,35 @@
-import React, { useState } from "react";
-// eslint-disable-next-line no-unused-vars
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { API_URL } from "../../../configs/varibles";
+import axios from "axios";
 import "./index.css";
 
-const ProductDetails = ({ product = {} }) => {
-  const {
-    image = "https://bizweb.dktcdn.net/thumb/1024x1024/100/448/660/products/image1685004991851-375d0df6-8520-4f33-935f-dca1a2b4ac3a.png?v=1689517174680",
-    title = "Áo T-Shirts BONIK Authentic White",
-    price = 295000,
-    description = "Áo Thun của Bonik là một sự kiết hợp hoàn hảo giữa phong cách năng động và thoải mái. Dược làm từ chất liệu thun gân co giãn, áo mang đến cảm giác êm ái và linh hoạt cho cơ thể. Đường may viền chắc chắn và ấn tượng giúp áo luôn giữ form và tạo điểm nhấn thời trang.",
-  } = product;
-
-  const colorOptions = [
-    { name: 'White', image: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/448/660/products/image1685004991851-375d0df6-8520-4f33-935f-dca1a2b4ac3a.png?v=1689517174680' },
-    { name: 'Black', image: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/448/660/products/image1685004991851-375d0df6-8520-4f33-935f-dca1a2b4ac3a.png?v=1689517174680' },
-    { name: 'Blue', image: 'https://bizweb.dktcdn.net/thumb/1024x1024/100/448/660/products/image1685004991851-375d0df6-8520-4f33-935f-dca1a2b4ac3a.png?v=1689517174680' },
-  ];
-  
-  const [selectedSize, setSelectedSize] = useState("M");
-  const [selectedColor, setSelectedColor] = useState("White");
-  const [quantity, setQuantity] = useState(1);
+const ProductDetails = () => {
+  const { id } = useParams(); // Get product ID from route parameters
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true); // Loading state to display loading spinner
+  const [product, setProduct] = useState({});
+  const [selectedSize, setSelectedSize] = useState("M");
+  const [selectedColor, setSelectedColor] = useState("");
+  const [quantity, setQuantity] = useState(1);
+
+  // Fetch product data by ID
+  useEffect(() => {
+    axios
+      .get(`${API_URL}/product/${id}`)
+      .then((response) => {
+        console.log("Product fetched:", response.data);
+        setProduct(response.data);
+        // Set default selected color if available
+        setSelectedColor(response.data.detail[0]?.color?.color_name || "");
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [id]);
 
   const handleSizeSelect = (size) => setSelectedSize(size);
   const handleColorSelect = (color) => setSelectedColor(color);
@@ -30,7 +39,6 @@ const ProductDetails = ({ product = {} }) => {
   };
 
   const handleAddToCart = () => {
-    // Logic for adding product to cart (e.g., updating cart state or localStorage)
     console.log("Product added to cart", { product, selectedSize, selectedColor, quantity });
   };
 
@@ -38,21 +46,24 @@ const ProductDetails = ({ product = {} }) => {
     navigate("/checkout");
   };
 
+  if (loading) return <div>Loading...</div>;
+
   return (
     <div className="product-detail">
       <div className="product-detail-top">
         <div className="product-image">
-          <img src={image} alt={title} />
+          <img src={`${API_URL}/img/${product.detail[0]?.productImage?.img_url}`} alt={product.product_name} />
+
           <div className="product-description">
             <h3>Thông tin sản phẩm</h3>
-            <p>{description}</p>
+            <p>{product.detail[0]?.description || "No description available"}</p>
           </div>
         </div>
 
         <div className="product-info">
-          <h1>{title}</h1>
+          <h1>{product.product_name}</h1>
           <p className="price">
-            {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price)}
+            {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(product.price)}
           </p>
 
           <div className="options">
@@ -62,7 +73,7 @@ const ProductDetails = ({ product = {} }) => {
                 <button
                   key={size}
                   onClick={() => handleSizeSelect(size)}
-className={selectedSize === size ? "active" : ""}
+                  className={selectedSize === size ? "active" : ""}
                 >
                   {size}
                 </button>
@@ -71,14 +82,13 @@ className={selectedSize === size ? "active" : ""}
             <div className="color-selection">
               <h4>Màu Sắc:</h4>
               <div className="color-options">
-                {colorOptions.map((option) => (
+                {product.detail.map((detail) => (
                   <button
-                    key={option.name} 
-                    onClick={() => handleColorSelect(option.name)} 
-                    className={`color-button ${selectedColor === option.name ? 'active' : ''}`}
+                    key={detail.color.color_id}
+                    onClick={() => handleColorSelect(detail.color.color_name)}
+                    className={`color-button ${selectedColor === detail.color.color_name ? "active" : ""}`}
                   >
-                    <img src={option.image} alt={option.name} className="color-image" />
-                    <span className="color-name">{option.name}</span>
+                    <span className="color-name">{detail.color.color_name}</span>
                   </button>
                 ))}
               </div>
@@ -88,7 +98,7 @@ className={selectedSize === size ? "active" : ""}
           <div className="buy-container">
             <h4>Số lượng:</h4>
             <div className="buy-column">
-              <div className="quantity-selector"> 
+              <div className="quantity-selector">
                 <button className="decrement" onClick={decrementQuantity}>-</button>
                 <span className="quantity">{quantity}</span>
                 <button className="increment" onClick={incrementQuantity}>+</button>
@@ -105,8 +115,8 @@ className={selectedSize === size ? "active" : ""}
             <h2>0123456789</h2>
             <p>Chính sách bán hàng</p>
             <p>
-              <i className="fa-solid fa-truck-fast"></i> Chính sách bán hàng 
-            </p> 
+              <i className="fa-solid fa-truck-fast"></i> Chính sách bán hàng
+            </p>
           </div>
         </div>
       </div>
