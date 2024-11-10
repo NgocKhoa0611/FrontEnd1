@@ -1,12 +1,23 @@
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const Cart = () => {
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCart(storedCart);
+    const fetchCart = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/cart")
+        setCart(response.data.cart);
+        setLoading(false);
+      } catch (error) {
+        console.log(error);
+        setLoading(false);
+
+      }
+    }
   }, []);
 
   const calculateTotal = () => {

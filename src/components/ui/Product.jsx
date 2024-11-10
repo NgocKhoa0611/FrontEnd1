@@ -28,7 +28,7 @@ export default function Product({ shopItems = {} }) {
   return (
     <div className="box">
       <div className="product mtop">
-        <div className="img w-52 h-52">
+        <div className="img">
           <Link className="" to={`/product/${product_id}`}>
             <img src={imageUrl} alt={product_name} className="w-full h-full object-cover" />
           </Link>
