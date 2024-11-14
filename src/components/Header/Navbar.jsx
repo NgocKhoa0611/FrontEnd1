@@ -12,6 +12,7 @@ const Navbar = () => {
       .get("http://localhost:8000/category")
       .then((response) => {
         const groupedCategories = response.data.reduce((acc, item) => {
+          if (item.is_hidden) return acc;
           if (!acc[item.category_parent_id]) {
             acc[item.category_parent_id] = [];
           }
