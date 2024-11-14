@@ -63,7 +63,7 @@ const Search = () => {
   }, []);
 
   return (
-    <section section className="search" >
+    <section className="search" >
       <div className="container c_flex">
         <Link className="logo width" to="/">
           <img src={logo} alt="Logo" />

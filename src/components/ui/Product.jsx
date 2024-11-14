@@ -1,28 +1,48 @@
-import { Link } from "react-router-dom";
+import axios from "axios";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-// eslint-disable-next-line react/prop-types
 export default function Product({ shopItems = {} }) {
   const { product_id, product_name, price, price_promotion, detail = [] } = shopItems;
   const imageUrl = `http://localhost:8000/img/${detail[0]?.productImage?.img_url || 'default-image.jpg'}`;
+  const [cart, setCart] = useState(null);
+  const navigate = useNavigate();
 
-  const addToCart = () => {
-    const existingCart = JSON.parse(localStorage.getItem("cart")) || [];
-    const itemIndex = existingCart.findIndex(item => item.product_id === product_id);
-
-    if (itemIndex !== -1) {
-      existingCart[itemIndex] = { ...existingCart[itemIndex], quantity: existingCart[itemIndex].quantity + 1 };
-    } else {
-      existingCart.push({
-        product_id,
-        product_name,
-        price,
-        quantity: 1,
-        image: imageUrl,
+  const getCart = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/cart', {
+        withCredentials: true,
       });
+      console.log('Cart items:', response.data.cart);
+      setCart(response.data.cart);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
+      console.error('Error fetching cart:', errorMessage);
     }
-
-    localStorage.setItem("cart", JSON.stringify(existingCart));
-    alert(`${product_name} đã thêm vào giỏ hàng`);
+  };
+  const addToCart = async () => {
+    const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+    if (!token) {
+      alert("Bạn cần phải đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
+      navigate("/login");
+      return;
+    }
+    try {
+      const response = await axios.post('http://localhost:8000/cart/add',
+        {
+          product_id,
+          quantity: 1,
+        },
+        {
+          withCredentials: true,  // Đảm bảo cookie sẽ được gửi cùng với yêu cầu
+        });
+      if (response.status === 200) {
+        alert(`${product_name} đã thêm vào giỏ hàng`);
+      }
+      getCart()
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    }
   };
 
   return (
