@@ -971,3 +971,21 @@ footer li {
   z-index: 1000;
 }
 
+.slick-prev, .slick-next {
+  width: auto !important;
+  height: auto !important;
+  background: transparent !important;
+}
+
+.slick-prev:before, .slick-next:before {
+  font-size: 40px !important;
+  color:#0f3460 !important;
+}
+
+.slick-prev {
+  left: -50px !important;
+}
+
+.slick-next {
+  right: -50px !important;
+}

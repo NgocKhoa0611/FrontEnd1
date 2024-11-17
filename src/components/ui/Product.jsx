@@ -47,33 +47,39 @@ export default function Product({ shopItems = {} }) {
 
   return (
     <div className="box">
-      <div className="product mtop">
-        <div className="img">
-          <Link className="" to={`/product/${product_id}`}>
-            <img src={imageUrl} alt={product_name} className="w-full h-full object-cover" />
-          </Link>
-        </div>
-        <div className="product-details">
+      <div className="mtop m-2 rounded-lg shadow-md overflow-hidden">
+      <div className="img relative w-full aspect-[4/3]">
+        <Link to={`/product/${product_id}`} className="absolute top-0 left-0 right-0 bottom-0">
+          <img 
+            src={imageUrl} 
+            alt={product_name} 
+            className="w-full h-full object-cover"
+          />
+        </Link>
+      </div>
+        <div className="product-details mt-4">
           <h5 className="text-center text-sm font-medium truncate" style={{ margin: '0' }}>
             {product_name}
           </h5>
-          <div className="price">
+          <div>
             {price_promotion > 0 ? (
               <>
-                <h5 className="text-base line-through text-gray-500">
-                  {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
-                </h5>
-                <h5 className="text-base text-red-500 font-semibold">
+              <div className="flex justify-center w-full gap-4 mt-2">
+                <h5 className="text-base text-red-500 font-semibold text-center">
                   {price_promotion.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
                 </h5>
+                <h5 className="text-base line-through text-gray-500 text-center">
+                  {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
+                </h5>
+              </div>  
               </>
             ) : (
-              <h5 className="text-base font-semibold">
+              <h5 className="text-base font-semibold text-center mt-2">
                 {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
               </h5>
             )}
-            <button onClick={addToCart} className="mt-1">
-              <i className="fa fa-plus"></i>
+            <button onClick={addToCart} className="mt-1 w-full mt-2 px-5 bg-[#0f3460] text-white py-2">
+              Thêm vào giỏ hàng  <i className="fa-solid fa-cart-plus ml-1 bg-"></i>
             </button>
           </div>
         </div>

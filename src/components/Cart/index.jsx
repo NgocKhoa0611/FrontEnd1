@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 
 const Cart = () => {
   const [cart, setCart] = useState({ cartDetail: [] });
-  const [selectedProducts, setSelectedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,20 +23,11 @@ const Cart = () => {
     };
     getCart();
   }, []);
-  const handleCheckboxChange = (product_id) => {
-    setSelectedProducts((prev) =>
-      prev.includes(product_id)
-        ? prev.filter((id) => id !== product_id) // Bỏ chọn
-        : [...prev, product_id] // Chọn thêm
-    );
-  };
+
   const calculateTotal = () => {
     if (!cart || !cart.cartDetail) return { subtotal: 0, taxes: 0, total: 0 };
-    const subtotal = selectedProducts.reduce((acc, productId) => {
-      const item = cart.cartDetail.find(
-        (item) => item.ProductDetail.product.product_id === productId
-      );
-      return acc + (item?.ProductDetail.product.price || 0) * (item?.quantity || 0);
+    const subtotal = cart.cartDetail.reduce((acc, item) => {
+      return acc + (item.ProductDetail.product.price || 0) * (item.quantity || 0);
     }, 0);
     const taxes = Math.round(subtotal * 0.1);
     return { subtotal, taxes, total: subtotal + taxes };
@@ -69,7 +59,6 @@ const Cart = () => {
     }
   };
 
-
   const handleDecrease = async (product_detail_id) => {
     try {
       const response = await axios.post(
@@ -89,12 +78,10 @@ const Cart = () => {
         }));
       }
     } catch (error) {
-      // Bắt lỗi và hiển thị thông báo nếu có lỗi xảy ra
       console.error("Error decreasing quantity:", error.response?.data || error.message);
       alert("Không thể giảm số lượng sản phẩm.");
     }
   };
-
 
   const handleRemove = async (product_detail_id) => {
     try {
@@ -115,8 +102,6 @@ const Cart = () => {
     }
   };
 
-
-
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -124,6 +109,7 @@ const Cart = () => {
   if (!cart || !cart.cartDetail || cart.cartDetail.length === 0) {
     return <div>Giỏ hàng của bạn chưa có sản phẩm nào.</div>;
   }
+
   return (
     <div className="bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -134,7 +120,6 @@ const Cart = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left font-semibold py-4 text-gray-600">Chọn</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Sản phẩm</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Giá</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Số lượng</th>
@@ -171,8 +156,7 @@ const Cart = () => {
                           <button
                             onClick={() => handleIncrease(item.ProductDetail.product_detail_id)}
                             className="py-2 px-2 text-gray-700 hover:bg-gray-200 transition"
-                          >
-                            +
+                          >   
                           </button>
                         </div>
                       </td>

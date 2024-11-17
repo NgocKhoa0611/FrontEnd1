@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './index.css';
+import axios from "axios";
 
 const Checkout = () => {
   const [formData, setFormData] = useState({
@@ -12,9 +13,27 @@ const Checkout = () => {
     notes: '',
     paymentMethod: 'bankTransfer' // Default payment method
   });
-
+  const [loading, setLoading] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [orderSuccess, setOrderSuccess] = useState(false); // State for success message
+
+  useEffect(() => {
+    const getCart = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/cart', {
+          withCredentials: true,
+        });
+        console.log('Cart items:', response.data.cart);
+        setCartItems(response.data.cart.cartDetail || { cartDetail: [] });
+        setLoading(false);
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
+        console.error('Error fetching cart:', errorMessage);
+        setLoading(false);
+      }
+    };
+    getCart();
+  }, []);
 
   useEffect(() => {
     // Retrieve cart data from localStorage
@@ -62,7 +81,7 @@ const Checkout = () => {
 
   // Calculate subtotal and total prices
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + item.quantity * item.price, 0);
+    return cartItems.reduce((total, item) => total + item.quantity * item.ProductDetail.product.price_promotion, 0);
   };
 
   const formatCurrency = (amount) => {
@@ -194,18 +213,26 @@ const Checkout = () => {
           <div className="order-summary">
             <h2>Đơn hàng</h2>
             <ul className="cart-items-list">
-              {cartItems.map((item, index) => (
+              {loading ? "loading..." : cartItems.map((item, index) => (
                 <li key={index} className="cart-item">
-                  <img src={item.image} alt={item.product_name} className="item-image" />
-                  <div className="item-details">
-                    <span className="item-name">{item.product_name}</span>
-                  </div>
-                  <span className="item-price">
-                    {formatCurrency(item.price)} x {item.quantity}
-                  </span>
-                  <span className="item-total">
-                    {formatCurrency(item.price * item.quantity)}
-                  </span>
+                    <img  
+                        className="h-24 w-24 rounded-md mr-4 border min-w-24"
+                        src={`http://localhost:8000/img/${item.ProductDetail.productImage?.img_url}`}
+                        alt={item.ProductDetail.product.product_name}
+                    />
+                    <div className='flex flex-col h-full w-full gap-5'>
+                      <div className="item-details">
+                        <span className="item-name">{item.ProductDetail.product.product_name}</span>
+                      </div>
+                      <div className='flex justify-between'>
+                        <span className="item-price">   
+                          {formatCurrency(item.ProductDetail.product.price_promotion)} x {item.quantity}
+                        </span>
+                        <span className="item-total">
+                        Tổng tiền: {formatCurrency(item.ProductDetail.product.price_promotion * item.quantity)}
+                        </span>
+                      </div>
+                    </div>
                 </li>
               ))}
             </ul>
