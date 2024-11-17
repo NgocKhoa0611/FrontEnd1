@@ -5,11 +5,13 @@ import Footer from "./pages/Footer.jsx";
 import Cart from "./pages/Cart.jsx";
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
+import Products from "./components/Products/index.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import Contact from "./pages/Contact.jsx";
 import Category from "./pages/Category.jsx";
 import Checkout from "./pages/Checkout.jsx"
+import Infor from "./pages/Infor.jsx";
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/category/:id" element={<Category />} />
         <Route path="/checkout" element={<Checkout />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/infor" element={<Infor />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />

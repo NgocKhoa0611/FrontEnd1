@@ -7,14 +7,27 @@ const Search = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [user, setUser] = useState(null);
+  const [cartCount, setCartCount] = useState(0);
+
 
   useEffect(() => {
     const token = document.cookie.split("; ").find(row => row.startsWith("token="));
     if (token) {
       setIsLoggedIn(true);
       fetchUser();
+      fetchCartCount();
     }
   }, []);
+  const fetchCartCount = async () => {
+    try {
+      const response = await axios.get("http://localhost:8000/cart/count", {
+        withCredentials: true,
+      });
+      setCartCount(response.data.count);
+    } catch (error) {
+      console.error("Error fetching cart count:", error);
+    }
+  };
 
   const fetchUser = async () => {
     try {
@@ -105,9 +118,14 @@ const Search = () => {
               </Link>
             </div>
           )}
-          <div className="cart">
+          <div className="cart relative">
             <Link to="/cart">
               <i className="fa fa-shopping-bag icon-circle"></i>
+              {cartCount > 0 && (
+                <span className="cart-count absolute -top-2 -right-2 bg-red-500 text-white text-xs text-center rounded-full px-2">
+                  {cartCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>

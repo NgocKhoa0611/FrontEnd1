@@ -5,46 +5,6 @@ import { Link, useNavigate } from "react-router-dom";
 export default function Product({ shopItems = {} }) {
   const { product_id, product_name, price, price_promotion, detail = [] } = shopItems;
   const imageUrl = `http://localhost:8000/img/${detail[0]?.productImage?.img_url || 'default-image.jpg'}`;
-  const [cart, setCart] = useState(null);
-  const navigate = useNavigate();
-
-  const getCart = async () => {
-    try {
-      const response = await axios.get('http://localhost:8000/cart', {
-        withCredentials: true,
-      });
-      console.log('Cart items:', response.data.cart);
-      setCart(response.data.cart);
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
-      console.error('Error fetching cart:', errorMessage);
-    }
-  };
-  const addToCart = async () => {
-    const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
-    if (!token) {
-      alert("Bạn cần phải đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
-      navigate("/login");
-      return;
-    }
-    try {
-      const response = await axios.post('http://localhost:8000/cart/add',
-        {
-          product_id,
-          quantity: 1,
-        },
-        {
-          withCredentials: true,  // Đảm bảo cookie sẽ được gửi cùng với yêu cầu
-        });
-      if (response.status === 200) {
-        alert(`${product_name} đã thêm vào giỏ hàng`);
-      }
-      getCart()
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-    }
-  };
-
   return (
     <div className="box">
       <div className="product mtop">
@@ -72,9 +32,6 @@ export default function Product({ shopItems = {} }) {
                 {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
               </h5>
             )}
-            <button onClick={addToCart} className="mt-1">
-              <i className="fa fa-plus"></i>
-            </button>
           </div>
         </div>
       </div>

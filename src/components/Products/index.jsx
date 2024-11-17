@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Product from "../ui/Product";  // Import the Product component
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';  // Import the icons
-import "./Products.css"
+import "./index.css"
 import Loading from "../ui/Loading";  // Import the Loading component
 
 const Products = () => {
