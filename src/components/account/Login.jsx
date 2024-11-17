@@ -52,6 +52,11 @@ const Login = () => {
       <div className="absolute top-20 right-32 w-[500px] h-[500px] bg-[#FFB20080] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob animation-delay-2000"></div>
       <div className="flex min-h-full flex-col justify-center sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <img
+            className="mx-auto h-12 w-auto"
+            src="https://imgur.com/WRxNbZj.png"
+            alt="Your Company"
+          />
           <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
             ĐĂNG NHẬP
           </h2>
