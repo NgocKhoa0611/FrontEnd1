@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const Cart = () => {
-  const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState({ cartDetail: [] });
+  const [loading, setLoading] = useState(true);
+  const [selectedItems, setSelectedItems] = useState([]);
+
 
   useEffect(() => {
     const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -39,6 +42,22 @@ const Cart = () => {
     localStorage.setItem("cart", JSON.stringify(updatedCart));
   };
 
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!cart || !cart.cartDetail || cart.cartDetail.length === 0) {
+    return <div>Giỏ hàng của bạn chưa có sản phẩm nào.</div>;
+  }
+  const handleSelect = (product_id) => {
+    setSelectedItems((prevSelected) =>
+      prevSelected.includes(product_id)
+        ? prevSelected.filter((id) => id !== product_id) // Bỏ chọn
+        : [...prevSelected, product_id] // Chọn
+    );
+  };
+
   return (
     <div className="bg-gray-50  py-8">
       <div className="container mx-auto px-4">
@@ -49,6 +68,7 @@ const Cart = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
+                    <th className="text-left font-semibold py-4 text-gray-600">Chọn</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Sản phẩm</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Giá</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Số lượng</th>
@@ -59,6 +79,14 @@ const Cart = () => {
                 <tbody>
                   {cart.map((item) => (
                     <tr className="border-b" key={item.id}>
+                      <td className="py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedItems.includes(item.product_id)}
+                          onChange={() => handleSelect(item.product_id)}
+                          className="form-checkbox"
+                        />
+                      </td>
                       <td className="py-4">
                         <div className="flex items-center">
                           <img className="h-16 w-16 rounded-md mr-4 border" src={item.image} alt={item.product_name} />

@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound.jsx";
 import Contact from "./pages/Contact.jsx";
 import Category from "./pages/Category.jsx";
 
+
 function App() {
   return (
     <>
