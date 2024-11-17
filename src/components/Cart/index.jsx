@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
 const Cart = () => {
-  const [cart, setCart] = useState(null); // Khởi tạo cart là null
+  const [cart, setCart] = useState({ cartDetail: [] });
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -13,7 +14,7 @@ const Cart = () => {
           withCredentials: true,
         });
         console.log('Cart items:', response.data.cart);
-        setCart(response.data.cart);
+        setCart(response.data.cart || { cartDetail: [] });
         setLoading(false);
       } catch (error) {
         const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
@@ -23,39 +24,98 @@ const Cart = () => {
     };
     getCart();
   }, []);
-
+  const handleCheckboxChange = (product_id) => {
+    setSelectedProducts((prev) =>
+      prev.includes(product_id)
+        ? prev.filter((id) => id !== product_id) // Bỏ chọn
+        : [...prev, product_id] // Chọn thêm
+    );
+  };
   const calculateTotal = () => {
-    if (!cart || !cart.cartDetail) return { subtotal: 0, taxes: 0, total: 0 }; // Nếu cart chưa có dữ liệu, trả về 0
-    const subtotal = cart.cartDetail.reduce((acc, item) => acc + item.ProductDetail.product.price * item.quantity, 0);
-    const taxes = Math.round(subtotal * 0.1); // Giả sử thuế là 10%
+    if (!cart || !cart.cartDetail) return { subtotal: 0, taxes: 0, total: 0 };
+    const subtotal = selectedProducts.reduce((acc, productId) => {
+      const item = cart.cartDetail.find(
+        (item) => item.ProductDetail.product.product_id === productId
+      );
+      return acc + (item?.ProductDetail.product.price || 0) * (item?.quantity || 0);
+    }, 0);
+    const taxes = Math.round(subtotal * 0.1);
     return { subtotal, taxes, total: subtotal + taxes };
   };
 
   const { subtotal, taxes, total } = calculateTotal();
 
-  const handleIncrease = (product_id) => {
-    if (!cart || !cart.cartDetail) return;
-    const updatedCart = cart.cartDetail.map((item) =>
-      item.ProductDetail.product.product_id === product_id ? { ...item, quantity: item.quantity + 1 } : item
-    );
-    setCart({ ...cart, cartDetail: updatedCart });
+  const handleIncrease = async (product_detail_id) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/cart/increase",
+        { product_detail_id },
+        { withCredentials: true }
+      );
+
+      if (response.data.cartDetail) {
+        setCart((prevCart) => ({
+          ...prevCart,
+          cartDetail: prevCart.cartDetail.map(item =>
+            item.cart_detail_id === response.data.cartDetail.cart_detail_id
+              ? response.data.cartDetail
+              : item
+          ),
+        }));
+      }
+    } catch (error) {
+      console.error("Error increasing quantity:", error.response?.data || error.message);
+      alert("Không thể tăng số lượng sản phẩm.");
+    }
   };
 
-  const handleDecrease = (product_id) => {
-    if (!cart || !cart.cartDetail) return;
-    const updatedCart = cart.cartDetail.map((item) =>
-      item.ProductDetail.product.product_id === product_id && item.quantity > 1
-        ? { ...item, quantity: item.quantity - 1 }
-        : item
-    );
-    setCart({ ...cart, cartDetail: updatedCart });
+
+  const handleDecrease = async (product_detail_id) => {
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/cart/decrease",
+        { product_detail_id },
+        { withCredentials: true }
+      );
+
+      if (response.data.cartDetail) {
+        setCart((prevCart) => ({
+          ...prevCart,
+          cartDetail: prevCart.cartDetail.map(item =>
+            item.cart_detail_id === response.data.cartDetail.cart_detail_id
+              ? response.data.cartDetail
+              : item
+          ),
+        }));
+      }
+    } catch (error) {
+      // Bắt lỗi và hiển thị thông báo nếu có lỗi xảy ra
+      console.error("Error decreasing quantity:", error.response?.data || error.message);
+      alert("Không thể giảm số lượng sản phẩm.");
+    }
   };
 
-  const handleRemove = (product_id) => {
-    if (!cart || !cart.cartDetail) return;
-    const updatedCart = cart.cartDetail.filter((item) => item.ProductDetail.product.product_id !== product_id);
-    setCart({ ...cart, cartDetail: updatedCart });
+
+  const handleRemove = async (product_detail_id) => {
+    try {
+      const response = await axios.delete(
+        "http://localhost:8000/cart",
+        {
+          data: { product_detail_id },
+          withCredentials: true
+        }
+      );
+
+      if (response.data.updatedCart) {
+        setCart(response.data.updatedCart);
+      }
+    } catch (error) {
+      console.error("Error removing product:", error.response?.data || error.message);
+      alert("Không thể xóa sản phẩm khỏi giỏ hàng.");
+    }
   };
+
+
 
   if (loading) {
     return <div>Loading...</div>;
@@ -64,7 +124,6 @@ const Cart = () => {
   if (!cart || !cart.cartDetail || cart.cartDetail.length === 0) {
     return <div>Giỏ hàng của bạn chưa có sản phẩm nào.</div>;
   }
-
   return (
     <div className="bg-gray-50 py-8">
       <div className="container mx-auto px-4">
@@ -75,6 +134,7 @@ const Cart = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
+                    <th className="text-left font-semibold py-4 text-gray-600">Chọn</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Sản phẩm</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Giá</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Số lượng</th>
@@ -99,7 +159,7 @@ const Cart = () => {
                       <td className="py-4 pr-4">
                         <div className="flex items-center border border-gray-300 rounded-md w-24">
                           <button
-                            onClick={() => handleDecrease(item.ProductDetail.product.product_id)}
+                            onClick={() => handleDecrease(item.ProductDetail.product_detail_id)}
                             className="py-2 px-2 text-gray-700 hover:bg-gray-200 transition"
                             disabled={item.quantity <= 1}
                           >
@@ -109,7 +169,7 @@ const Cart = () => {
                             {item.quantity}
                           </span>
                           <button
-                            onClick={() => handleIncrease(item.ProductDetail.product.product_id)}
+                            onClick={() => handleIncrease(item.ProductDetail.product_detail_id)}
                             className="py-2 px-2 text-gray-700 hover:bg-gray-200 transition"
                           >
                             +
@@ -119,7 +179,7 @@ const Cart = () => {
                       <td className="py-4 px-2 text-gray-600">{(item.ProductDetail.product.price * item.quantity).toLocaleString()}₫</td>
                       <td className="py-4">
                         <button
-                          onClick={() => handleRemove(item.ProductDetail.product.product_id)}
+                          onClick={() => handleRemove(item.ProductDetail.product_detail_id)}
                           className="text-red-500 hover:text-red-700 transition"
                         >
                           Xóa

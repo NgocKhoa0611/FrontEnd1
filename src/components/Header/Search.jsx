@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import logo from "../../assets/images/logo.svg";
+import logo from "../../assets/images/logo.png";
 import { Link } from "react-router-dom";
 
 const Search = () => {
