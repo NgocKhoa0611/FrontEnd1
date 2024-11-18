@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; 
-import './index.css'; 
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import './index.css';
+import axios from "axios";
 
-const Checkout = ({ CartItem }) => {
+const Checkout = () => {
   const [formData, setFormData] = useState({
     email: '',
     fullName: '',
@@ -12,27 +13,43 @@ const Checkout = ({ CartItem }) => {
     notes: '',
     paymentMethod: 'bankTransfer' // Default payment method
   });
+  const [loading, setLoading] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [orderSuccess, setOrderSuccess] = useState(false); // State for success message
 
-  const exampleCartItems = [
-    {
-      id: 1,
-      name: "Áo Thun Nam",
-      price: 250000, // VND
-      qty: 2,
-      cover: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQp9n6dneTzP-7cmmYE7PGIazusy-1ZosqQ4A&s", // URL to the product image
-      selectedSize: "M"
-    },
-    {
-      id: 2,
-      name: "Quần Jean Nữ",
-      price: 300000, // VND
-      qty: 1,
-      cover: "https://bizweb.dktcdn.net/thumb/grande/100/419/932/products/ao-phong-3-soc-ke-trang-ed7483-01-laydown.jpg?v=1622122684113", // URL to the product image
-      selectedSize: "S"
+  useEffect(() => {
+    const getCart = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/cart', {
+          withCredentials: true,
+        });
+        console.log('Cart items:', response.data.cart);
+        setCartItems(response.data.cart.cartDetail || { cartDetail: [] });
+        setLoading(false);
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
+        console.error('Error fetching cart:', errorMessage);
+        setLoading(false);
+      }
+    };
+    getCart();
+  }, []);
+
+  useEffect(() => {
+    // Retrieve cart data from localStorage
+    const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
+    setCartItems(storedCart);
+  }, []);
+
+  useEffect(() => {
+    if (orderSuccess) {
+      const timer = setTimeout(() => {
+        setOrderSuccess(false); // Ẩn thông báo sau 3 giây
+      }, 3000);
+      return () => clearTimeout(timer); // Dọn dẹp timer
     }
-  ];
+  }, [orderSuccess]);
 
-  CartItem = exampleCartItems;
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -40,244 +57,238 @@ const Checkout = ({ CartItem }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission here (e.g., send data to backend)
-    console.log('Form submitted:', formData); 
+
+    // Simulate order submission
+    console.log('Form submitted:', formData);
+
+    // Clear form data and show success message
+    setFormData({
+      email: '',
+      fullName: '',
+      phoneNumber: '',
+      address: '',
+      city: '',
+      notes: '',
+      paymentMethod: 'bankTransfer'
+    });
+
+    setOrderSuccess(true);
+
+    // Clear cart after successful order
+    setCartItems([]);
+    localStorage.removeItem('cart');
   };
 
-  // Calculate total price
-  const totalPrice = CartItem.reduce(
-    (total, item) => total + item.qty * item.price,
-    0
-  );
+  // Calculate subtotal and total prices
+  const calculateSubtotal = () => {
+    return cartItems.reduce((total, item) => total + item.quantity * item.ProductDetail.product.price_promotion, 0);
+  };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("vi-VN", {
-      style: "currency",
-      currency: "VND",
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
     }).format(amount);
   };
+
+  const subtotal = calculateSubtotal();
+  const shippingFee = 0; // Can be adjusted based on conditions
+  const total = subtotal + shippingFee;
 
   return (
     <div className="checkout-page">
       <div className="container">
-      <form onSubmit={handleSubmit} className="checkout-content">
-          {/* Form Section */}
-   
-        <div className="checkout-info">
-        <h2>Thông tin nhận hàng</h2>
+        {/* Success Message */}
+        {orderSuccess && (
+          <div className="success-message">
+            <p>Đặt hàng thành công! Cảm ơn bạn đã mua sắm.</p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="checkout-content">
+          {/* Recipient Information */}
+          <div className="checkout-info">
+            <h2>Thông tin nhận hàng</h2>
             <div className="form-group">
-    <input
-        type="email"
-        id="email"
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        required
-        placeholder="Email"
-        className="form-input"
-    />
-</div>
-
-<div className="form-group">
-    <input
-        type="text"
-        id="fullName"
-        name="fullName"
-        value={formData.fullName}
-        onChange={handleChange}
-        required
-        placeholder="Họ và tên"
-        className="form-input"
-    />
-</div>
-
-<div className="form-group">
-    <input
-        type="text"
-        id="phoneNumber"
-        name="phoneNumber"
-        value={formData.phoneNumber}
-        onChange={handleChange}
-        required
-        placeholder="Số điện thoại"
-        className="form-input"
-    />
-</div>
-
-<div className="form-group">
-    <input
-        type="text"
-        id="address"
-        name="address"
-        value={formData.address}
-        onChange={handleChange}
-        required
-        placeholder="Địa chỉ"
-        className="form-input"
-    />
-</div>
-
-<div className="form-group">
-    <select
-        id="city"
-        name="city"
-        value={formData.city}
-        onChange={handleChange}
-        required
-        className="form-input"
-    >
-        <option value="">Chọn tỉnh thành</option> {/* Placeholder option */}
-        <option value="Hà Nội">Hà Nội</option>
-        <option value="Hồ Chí Minh">Hồ Chí Minh</option>
-        <option value="Đà Nẵng">Đà Nẵng</option>
-        <option value="Hải Phòng">Hải Phòng</option>
-        <option value="Cần Thơ">Cần Thơ</option>
-        <option value="An Giang">An Giang</option>
-        <option value="Bà Rịa - Vũng Tàu">Bà Rịa - Vũng Tàu</option>
-        <option value="Bắc Giang">Bắc Giang</option>
-        <option value="Bắc Ninh">Bắc Ninh</option>
-        <option value="Bến Tre">Bến Tre</option>
-        <option value="Bình Định">Bình Định</option>
-        <option value="Bình Dương">Bình Dương</option>
-        <option value="Bình Thuận">Bình Thuận</option>
-        <option value="Cà Mau">Cà Mau</option>
-        <option value="Đắk Lắk">Đắk Lắk</option>
-        <option value="Đắk Nông">Đắk Nông</option>
-        <option value="Điện Biên">Điện Biên</option>
-        <option value="Hà Giang">Hà Giang</option>
-        <option value="Hà Nam">Hà Nam</option>
-        <option value="Hà Tĩnh">Hà Tĩnh</option>
-        <option value="Hòa Bình">Hòa Bình</option>
-        <option value="Hưng Yên">Hưng Yên</option>
-        <option value="Khánh Hòa">Khánh Hòa</option>
-        <option value="Kiên Giang">Kiên Giang</option>
-        <option value="Kon Tum">Kon Tum</option>
-        <option value="Lai Châu">Lai Châu</option>
-        <option value="Lạng Sơn">Lạng Sơn</option>
-        <option value="Lào Cai">Lào Cai</option>
-        <option value="Nam Định">Nam Định</option>
-        <option value="Ninh Bình">Ninh Bình</option>
-        <option value="Ninh Thuận">Ninh Thuận</option>
-        <option value="Phú Thọ">Phú Thọ</option>
-        <option value="Phú Yên">Phú Yên</option>
-        <option value="Quảng Bình">Quảng Bình</option>
-        <option value="Quảng Nam">Quảng Nam</option>
-        <option value="Quảng Ngãi">Quảng Ngãi</option>
-        <option value="Quảng Ninh">Quảng Ninh</option>
-        <option value="Sóc Trăng">Sóc Trăng</option>
-        <option value="Sơn La">Sơn La</option>
-        <option value="Tây Ninh">Tây Ninh</option>
-        <option value="Thái Bình">Thái Bình</option>
-        <option value="Thái Nguyên">Thái Nguyên</option>
-        <option value="Thanh Hóa">Thanh Hóa</option>
-        <option value="Thừa Thiên - Huế">Thừa Thiên - Huế</option>
-        <option value="Tiền Giang">Tiền Giang</option>
-        <option value="Trà Vinh">Trà Vinh</option>
-        <option value="Tuyên Quang">Tuyên Quang</option>
-        <option value="Vĩnh Long">Vĩnh Long</option>
-        <option value="Vĩnh Phúc">Vĩnh Phúc</option>
-        <option value="Yên Bái">Yên Bái</option>
-    </select>
-</div>
-
-
-<div className="form-group">
-    <textarea
-        type="text"
-        id="notes"
-        name="notes"
-        value={formData.notes}
-        onChange={handleChange}
-        placeholder="Ghi chú (tùy chọn)"
-        className="form-input"
-        rows={3}
-    ></textarea>
-</div>
-         
-        </div>
-        
-        <div className="payment">
-    <h2>Thanh toán</h2>
-    <div className="payment-methods list-group">
-        <div className="payment-option list-group-item">
-            <input
-                type="radio"
-                id="bankTransfer"
-                name="paymentMethod"
-                value="bankTransfer"
-                checked={formData.paymentMethod === 'bankTransfer'} 
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
                 onChange={handleChange}
-            />
-            <div className="label-group"><label htmlFor="bankTransfer" className="payment-label">Chuyển khoản qua ngân hàng</label><i class="fa-solid fa-money-bill"></i></div>
-        </div>
-        <div className="payment-option list-group-item">
-            <input
-                type="radio"
-                id="cashOnDelivery"
-                name="paymentMethod"
-                value="cashOnDelivery"
-                checked={formData.paymentMethod === 'cashOnDelivery'} 
+                required
+                placeholder="Email"
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
                 onChange={handleChange}
-            />
-            <div className="label-group"><label htmlFor="cashOnDelivery" className="payment-label">Thanh toán khi giao hàng (COD)</label><i class="fa-solid fa-money-bill"></i></div>
-        </div>
-        {/* Add more payment methods similarly */}
+                required
+                placeholder="Họ và tên"
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+                required
+                placeholder="Số điện thoại"
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+                placeholder="Địa chỉ"
+                className="form-input"
+              />
+            </div>
+            <div className="form-group">
+              <select
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                required
+                className="form-input"
+              >
+                <option value="">Chọn tỉnh thành</option>
+                <option value="Hà Nội">Hà Nội</option>
+                <option value="Hồ Chí Minh">Hồ Chí Minh</option>
+                <option value="Đà Nẵng">Đà Nẵng</option>
+                {/* Add more cities as needed */}
+              </select>
+            </div>
+            <div className="form-group">
+              <textarea
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
+                placeholder="Ghi chú (tùy chọn)"
+                className="form-input"
+                rows={3}
+              ></textarea>
+            </div>
+          </div>
+
+          <div className="payment">
+  <h2 className="text-xl font-semibold mb-4">Phương thức thanh toán</h2>
+  <div className="payment-methods space-y-4">
+    {/* Chuyển khoản ngân hàng */}
+    <div>
+      <input
+        type="radio"
+        id="bankTransfer"
+        name="paymentMethod"
+        value="bankTransfer"
+        checked={formData.paymentMethod === 'bankTransfer'}
+        onChange={handleChange}
+        className="mr-2"
+      />
+      <label htmlFor="bankTransfer" className="text-gray-700 font-medium">
+       Thanh toán khi nhận hàng
+      </label>
     </div>
-</div>
 
-          {/* Order Summary Section */}
+    {/* Momo */}
+    <div>
+      <input
+        type="radio"
+        id="momo"
+        name="paymentMethod"
+        value="momo"
+        checked={formData.paymentMethod === 'momo'}
+        onChange={handleChange}
+        className="mr-2"
+      />
+      <label htmlFor="momo" className="text-gray-700 font-medium">
+        Thanh toán qua Momo
+      </label>
+    </div>
+  </div>
+
+  {/* Hiển thị giao diện Momo nếu chọn thanh toán qua Momo */}
+  {formData.paymentMethod === 'momo' && (
+    <div className="mt-6 bg-gray-100 p-6 rounded-lg shadow-md">
+      <h3 className="text-lg font-bold text-gray-800 mb-4">
+        Thanh toán qua Momo
+      </h3>
+      <p className="text-gray-600 mb-2">
+        Quét mã QR bên dưới bằng ứng dụng Momo để hoàn tất thanh toán.
+      </p>
+      <div className="flex justify-center mb-4">
+        {/* Mã QR */}
+        <img
+          src="https://via.placeholder.com/200" // Thay bằng URL mã QR thực tế
+          alt="QR Code"
+          className="w-48 h-48 border rounded-lg shadow-md"
+        />
+      </div>
+      
+    </div>
+  )}
+</div>
+          {/* Order Summary */}
           <div className="order-summary">
             <h2>Đơn hàng</h2>
             <ul className="cart-items-list">
-              {CartItem.map((item) => (
-                <li key={item.id} className="cart-item">
-                  <img src={item.cover} alt={item.name} className="item-image" />
-                  <div className="item-details">
-                    <span className="item-name">{item.name}</span>
-                    <span className="item-size">Size: {item.selectedSize}</span> {/* Make sure selectedSize is passed correctly */}
-                  </div>
-                  <span className="item-price">{formatCurrency(item.price)} x{item.qty}</span>
+              {loading ? "loading..." : cartItems.map((item, index) => (
+                <li key={index} className="cart-item">
+                    <img  
+                        className="h-24 w-24 rounded-md mr-4 border min-w-24"
+                        src={`http://localhost:8000/img/${item.ProductDetail.productImage?.img_url}`}
+                        alt={item.ProductDetail.product.product_name}
+                    />
+                    <div className='flex flex-col h-full w-full gap-5'>
+                      <div className="item-details">
+                        <span className="item-name">{item.ProductDetail.product.product_name}</span>
+                      </div>
+                      <div className='flex justify-between'>
+                        <span className="item-price">   
+                          {formatCurrency(item.ProductDetail.product.price_promotion)} x {item.quantity}
+                        </span>
+                        <span className="item-total">
+                        Tổng tiền: {formatCurrency(item.ProductDetail.product.price_promotion * item.quantity)}
+                        </span>
+                      </div>
+                    </div>
                 </li>
               ))}
             </ul>
-
-            {/* Discount Section (Optional) */}
-            <div className="discount-section">
-              <input
-                type="text"
-                placeholder="Nhập mã giảm giá"
-                className="discount-input"
-              />
-              <button className="apply-discount-btn">Áp dụng</button>
-            </div>
 
             {/* Price Breakdown */}
             <div className="price-breakdown">
               <div className="price-row">
                 <span>Tạm tính</span>
-                <span className='price-right'>{formatCurrency(totalPrice)}</span>
+                <span className="price-right">{formatCurrency(subtotal)}</span>
               </div>
-              {/* Add other price rows (e.g., shipping) if needed */}
               <div className="price-row">
                 <span>Phí vận chuyển</span>
-                <span className='price-right'>0</span> {/* Update with actual shipping cost */}
+                <span className="price-right">{formatCurrency(shippingFee)}</span>
               </div>
-
-              
             </div>
 
             <div className="total-price">
-                <span>Tổng cộng</span>
-                <span className='price-right'>{formatCurrency(totalPrice)}</span>
-              </div>
-              <div className="checkout-button-group">
-                <Link to="/cart" className="back-to-cart">
-                <i class="fa-solid fa-chevron-left"></i> Quay về giỏ hàng
-                </Link>
-                <button type="submit" className="place-order-btn">
+              <span>Tổng cộng</span>
+              <span className="price-right">{formatCurrency(total)}</span>
+            </div>
+            <div className="checkout-button-group">
+              <Link to="/cart" className="back-to-cart">
+                <p className='text-black'><i className="fa-solid fa-chevron-left "></i> Quay về giỏ hàng</p>
+              </Link>
+              <button type="submit" className="place-order-btn">
                 Đặt hàng
-                </button>
-              </div>
+              </button>
+            </div>
           </div>
         </form>
       </div>

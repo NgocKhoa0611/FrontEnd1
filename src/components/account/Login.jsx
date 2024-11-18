@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import axios from 'axios';
 
 const Login = () => {
   const formik = useFormik({
@@ -14,9 +15,36 @@ const Login = () => {
       email: Yup.string().email('Email không hợp lệ').required('Bắt buộc'),
       password: Yup.string().required('Bắt buộc'),
     }),
-    onSubmit: (values) => {
-      console.log("Form values:", values);
-    },
+
+    onSubmit: async (values, { setSubmitting, setFieldError }) => {
+      try {
+        const res = await axios.post(`http://localhost:8000/auth/login`, {
+          email: values.email,
+          password: values.password,
+        });
+
+        if (res.status !== 200) {
+          throw new Error(res.data.message || 'Đăng nhập thất bại');
+        }
+        // Lưu token vào cookie
+        const data = res.data;
+        document.cookie = `token=${data.token}; path=/; max-age=${60 * 60}`;
+
+        // Chuyển trang theo role
+        const token = data.token;
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.role === 'admin') {
+          window.location.href = 'http://localhost:5173';
+        } else {
+          window.location.href = '/';
+        }
+      } catch (error) {
+        setFieldError('general', error.response?.data?.message || error.message);
+      } finally {
+        setSubmitting(false);
+      }
+    }
+
   })
   return (
     <div className="relative h-screen bg-gray-50 overflow-hidden">
@@ -24,6 +52,11 @@ const Login = () => {
       <div className="absolute top-20 right-32 w-[500px] h-[500px] bg-[#FFB20080] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob animation-delay-2000"></div>
       <div className="flex min-h-full flex-col justify-center sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <img
+            className="mx-auto h-12 w-auto"
+            src="https://imgur.com/WRxNbZj.png"
+            alt="Your Company"
+          />
           <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
             ĐĂNG NHẬP
           </h2>

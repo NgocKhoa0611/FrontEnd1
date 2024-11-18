@@ -7,12 +7,14 @@ export default function Category() {
   const { id } = useParams();
   const [products, setProducts] = useState([]);
   const [categoryName, setCategoryName] = useState('');
+  const [isHidden, setIsHidden] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     axios.get(`http://localhost:8000/category/${id}`)
       .then((response) => {
         setCategoryName(response.data.category_name);
+        setIsHidden(response.data.is_hidden)
         console.log(response.data.category_name);
       })
       .catch((error) => {
@@ -21,7 +23,8 @@ export default function Category() {
 
     axios.get(`http://localhost:8000/product/category/${id}`)
       .then((response) => {
-        setProducts(response.data);
+        const visibleProducts = response.data.filter(product => !product.is_hidden);
+        setProducts(visibleProducts);
         setLoading(false);
       })
       .catch((error) => {
@@ -29,6 +32,10 @@ export default function Category() {
         setLoading(false);
       });
   }, [id]);
+
+  if ((products.length === 0 && !loading)) {
+    return <p>Danh mục này hiện không có sản phẩm.</p>;
+  }
 
   return (
     <div className="bg-white">

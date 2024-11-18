@@ -38,8 +38,22 @@ const ProductDetails = () => {
     if (quantity > 1) setQuantity(quantity - 1);
   };
 
-  const handleAddToCart = () => {
-    console.log("Product added to cart", { product, selectedSize, selectedColor, quantity });
+  const handleAddToCart = async () => {
+    const cartItem = {
+      product_id: product._id,  // ID sản phẩm
+      size: selectedSize,       // Kích thước đã chọn
+      color: selectedColor,     // Màu sắc đã chọn
+      quantity: quantity,       // Số lượng đã chọn
+    };
+  
+    try {
+      const response = await axios.post("http://localhost:8000/cart/add", cartItem, { withCredentials: true });
+      console.log("Product added to cart:", response.data);
+      alert("Sản phẩm đã được thêm vào giỏ hàng!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Không thể thêm sản phẩm vào giỏ hàng.");
+    }
   };
 
   const handleBuyNow = () => {
