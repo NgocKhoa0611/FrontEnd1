@@ -1,11 +1,17 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from "react-redux";
+import { updateItemQuantity, CartCount, removeItemFromCart } from '../../../redux/slices/cartslice';
+import { setSelectedItems } from '../../../redux/slices/orderslice';
+import { } from '../../../redux/slices/cartslice';
 
 const Cart = () => {
   const [cart, setCart] = useState({ cartDetail: [] });
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getCart = async () => {
@@ -24,41 +30,93 @@ const Cart = () => {
     };
     getCart();
   }, []);
-  const handleCheckboxChange = (product_id) => {
-    setSelectedProducts((prev) =>
-      prev.includes(product_id)
-        ? prev.filter((id) => id !== product_id) // Bỏ chọn
-        : [...prev, product_id] // Chọn thêm
-    );
-  };
-  const calculateTotal = () => {
-    if (!cart || !cart.cartDetail) return { subtotal: 0, taxes: 0, total: 0 };
-    const subtotal = selectedProducts.reduce((acc, productId) => {
-      const item = cart.cartDetail.find(
-        (item) => item.ProductDetail.product.product_id === productId
+
+  const handleCheckboxChange = (cartDetail) => {
+    setSelectedProducts((prevSelected) => {
+      const isAlreadySelected = prevSelected.some(
+        (product) => product.cart_detail_id === cartDetail.cart_detail_id
       );
-      return acc + (item?.ProductDetail.product.price || 0) * (item?.quantity || 0);
-    }, 0);
-    const taxes = Math.round(subtotal * 0.1);
-    return { subtotal, taxes, total: subtotal + taxes };
+
+      const updatedSelectedProducts = isAlreadySelected
+        ? prevSelected.filter(
+          (product) => product.cart_detail_id !== cartDetail.cart_detail_id
+        )
+        : [
+          ...prevSelected,
+          {
+            ...cartDetail,
+            ...cartDetail.ProductDetail,
+            ...cartDetail.ProductDetail.product,
+          },
+        ];
+
+      const subtotal = updatedSelectedProducts.reduce(
+        (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
+        0
+      );
+
+      const voucher = 0;
+      const totalAmount = subtotal + voucher;
+
+      // Cập nhật Redux store
+      dispatch(
+        setSelectedItems({
+          selectedItems: updatedSelectedProducts,
+          totalAmount,
+        })
+      );
+
+      return updatedSelectedProducts;
+    });
   };
 
-  const { subtotal, taxes, total } = calculateTotal();
+
+
+  const calculateTotal = () => {
+    if (!selectedProducts || selectedProducts.length === 0) return { subtotal: 0, voucher: 0, total: 0 };
+
+    const subtotal = selectedProducts.reduce((acc, productDetail) => {
+      return acc + (productDetail.price || 0) * (productDetail.quantity || 1); // Assuming quantity is available
+    }, 0);
+
+    const voucher = 0; // Update this with voucher logic if needed
+    return { subtotal, voucher, total: subtotal + voucher };
+  };
+
+
+
+  console.log('Selected Products before navigating:', selectedProducts);
+
+  const { subtotal, voucher, total } = calculateTotal();
 
   const handleIncrease = async (product_detail_id) => {
     try {
-      const response = await axios.post(
+      const response = await axios.put(
         "http://localhost:8000/cart/increase",
         { product_detail_id },
         { withCredentials: true }
       );
 
       if (response.data.cartDetail) {
+        // Cập nhật giỏ hàng trong Redux
+        dispatch(updateItemQuantity({
+          product_detail_id: response.data.cartDetail.product_detail_id,
+          quantity: response.data.cartDetail.quantity,
+        }));
+        const updatedCartCount = cart.cartDetail.reduce(
+          (total, item) => total + (item.ProductDetail.product_detail_id === product_detail_id
+            ? response.data.cartDetail.quantity
+            : item.quantity),
+          0
+        );
+        dispatch(CartCount(updatedCartCount));
+
+        // Cập nhật UI nếu cần
         setCart((prevCart) => ({
           ...prevCart,
           cartDetail: prevCart.cartDetail.map(item =>
             item.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? response.data.cartDetail
+              ? { ...item, quantity: response.data.cartDetail.quantity }
               : item
           ),
         }));
@@ -69,21 +127,33 @@ const Cart = () => {
     }
   };
 
-
   const handleDecrease = async (product_detail_id) => {
     try {
-      const response = await axios.post(
+      const response = await axios.put(
         "http://localhost:8000/cart/decrease",
         { product_detail_id },
         { withCredentials: true }
       );
 
       if (response.data.cartDetail) {
+        // Cập nhật giỏ hàng trong Redux
+        dispatch(updateItemQuantity({
+          product_detail_id: response.data.cartDetail.product_detail_id,
+          quantity: response.data.cartDetail.quantity,
+        }));
+        const updatedCartCount = cart.cartDetail.reduce(
+          (total, item) => total + (item.ProductDetail.product_detail_id === product_detail_id
+            ? response.data.cartDetail.quantity
+            : item.quantity),
+          0
+        );
+        dispatch(CartCount(updatedCartCount));
+        // Cập nhật UI nếu cần
         setCart((prevCart) => ({
           ...prevCart,
           cartDetail: prevCart.cartDetail.map(item =>
             item.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? response.data.cartDetail
+              ? { ...item, quantity: response.data.cartDetail.quantity }
               : item
           ),
         }));
@@ -94,12 +164,47 @@ const Cart = () => {
     }
   };
 
+  const handleRemove = async (product_detail_id) => {
+    try {
+      console.log('Removing product with ID:', product_detail_id);
 
-  const handleRemove = (product_id) => {
-    if (!cart || !cart.cartDetail) return;
-    const updatedCart = cart.cartDetail.filter((item) => item.ProductDetail.product.product_id !== product_id);
-    setCart({ ...cart, cartDetail: updatedCart });
+      const response = await axios.delete(`http://localhost:8000/cart/${product_detail_id}`,
+        { withCredentials: true });
+
+      if (response.status === 200) {
+
+        dispatch(removeItemFromCart(product_detail_id));
+        const updatedCartResponse = await axios.get('http://localhost:8000/cart',
+          { withCredentials: true });
+
+        setCart(updatedCartResponse.data.cart);
+        const updatedCartCount = cart.cartDetail.reduce(
+          (total, item) =>
+            total +
+            (item.ProductDetail.product_detail_id === product_detail_id
+              ? 0 // Bỏ sản phẩm vừa xóa
+              : item.quantity),
+          0
+        );
+        dispatch(CartCount(updatedCartCount));
+
+        alert("Sản phẩm đã được xóa khỏi giỏ hàng!");
+      } else {
+        console.warn('Unexpected response:', response.data);
+        alert("Đã xảy ra lỗi khi xóa sản phẩm. Vui lòng thử lại.");
+      }
+    } catch (error) {
+      console.error("Error removing product from cart:", error.response?.data || error.message);
+
+      if (error.response) {
+        const errorMessage = error.response.data?.message || "Không thể xóa sản phẩm.";
+        alert(errorMessage);
+      } else {
+        alert("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.");
+      }
+    }
   };
+
 
   if (loading) {
     return <div>Loading...</div>;
@@ -108,8 +213,6 @@ const Cart = () => {
   if (!cart || !cart.cartDetail || cart.cartDetail.length === 0) {
     return <div>Giỏ hàng của bạn chưa có sản phẩm nào.</div>;
   }
-
-
 
   if (loading) {
     return <div>Loading...</div>;
@@ -129,7 +232,7 @@ const Cart = () => {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left font-semibold py-4 text-gray-600">Chọn</th>
-                    <th className="text-left font-semibold py-4 text-gray-600">Sản phẩm</th>
+                    <th className="text-center font-semibold py-4 text-gray-600">Sản phẩm</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Giá</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Số lượng</th>
                     <th className="text-left font-semibold py-4 text-gray-600">Tổng cộng</th>
@@ -139,6 +242,17 @@ const Cart = () => {
                 <tbody>
                   {cart.cartDetail.map((item) => (
                     <tr className="border-b" key={item.cart_detail_id}>
+                      <td className="py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.some(
+                            (product) => product.cart_detail_id === item.cart_detail_id
+                          )}
+                          onChange={() => handleCheckboxChange(item)}
+                          className="form-checkbox h-5 w-5 text-blue-600"
+                        />
+                      </td>
+
                       <td className="py-4">
                         <div className="flex items-center">
                           <img
@@ -193,19 +307,20 @@ const Cart = () => {
                 <span>{subtotal.toLocaleString()}₫</span>
               </div>
               <div className="flex justify-between mb-2 text-gray-600">
-                <span>Thuế</span>
-                <span>{taxes.toLocaleString()}₫</span>
+                <span>Voucher</span>
+                <span>{voucher.toLocaleString()}₫</span>
               </div>
               <hr className="my-4 border-gray-200" />
               <div className="flex justify-between text-lg font-semibold text-gray-700">
                 <span>Tổng cộng</span>
                 <span>{total.toLocaleString()}₫</span>
               </div>
-              <Link to="/checkout" className="block">
-                <button className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg mt-6 w-full hover:bg-blue-600 transition">
-                  Thanh toán
-                </button>
-              </Link>
+              <button
+                onClick={() => navigate('/checkout')}
+                className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg mt-6 w-full hover:bg-blue-600 transition"
+              >
+                Thanh toán
+              </button>
             </div>
           </div>
         </div>

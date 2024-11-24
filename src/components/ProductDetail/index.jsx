@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import { API_URL } from "../../../configs/varibles";
 import axios from "axios";
 import "./index.css";
+import { useDispatch } from "react-redux";
+import { addItemToCart, CartCount } from '../../../redux/slices/cartslice';
+import { useSelector } from 'react-redux';
 
 const ProductDetails = () => {
   const { id } = useParams(); // Get product ID from route parameters
@@ -12,9 +15,10 @@ const ProductDetails = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [cart, setCart] = useState(1);
 
-  // Fetch product data by ID
+  const dispatch = useDispatch();
+  const currentCartCount = useSelector((state) => state.cart.cartCount || 0);
+
   useEffect(() => {
     axios
       .get(`${API_URL}/product/${id}`)
@@ -32,26 +36,11 @@ const ProductDetails = () => {
       });
   }, [id]);
 
-  const handleSizeSelect = (size) => setSelectedSize(size);
-  const handleColorSelect = (color) => setSelectedColor(color);
-  const incrementQuantity = () => setQuantity(quantity + 1);
-  const decrementQuantity = () => {
-    if (quantity > 1) setQuantity(quantity - 1);
-  };
-
-  const getCart = async () => {
-    try {
-      const response = await axios.get('http://localhost:8000/cart', {
-        withCredentials: true,
-      });
-      console.log('Cart items:', response.data.cart);
-      setCart(response.data.cart);
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
-      console.error('Error fetching cart:', errorMessage);
+  const addToCartHandler = async () => {
+    if (!product.product_name) {
+      alert("Dữ liệu sản phẩm chưa được tải đầy đủ.");
+      return;
     }
-  };
-  const addToCart = async () => {
     const selectedDetail = product.detail.find(
       (detail) =>
         detail.size.size_name === selectedSize &&
@@ -63,40 +52,73 @@ const ProductDetails = () => {
       return;
     }
 
-    const { product_detail_id } = selectedDetail;
-
-    const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
-    if (!token) {
-      alert("Bạn cần phải đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
-      navigate("/login");
-      return;
-    }
+    const newItem = {
+      product_detail_id: selectedDetail.product_detail_id,
+      quantity,
+    };
+    console.log("Payload gửi lên API:", newItem);
 
     try {
+      const token = document.cookie
+        .split('; ')
+        .find((cookie) => cookie.startsWith('token='))
+        ?.split('=')[1];
+
+      if (!token) {
+        alert("Bạn cần phải đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
+        navigate("/login");
+        return;
+      }
+
       const response = await axios.post(
         "http://localhost:8000/cart/add",
-        {
-          product_detail_id,
-          quantity,
-        },
-        {
-          withCredentials: true,
-        }
+        { newItem },
+        { withCredentials: true }
       );
 
       if (response.status === 200) {
-        alert(`${product.product_name} đã được thêm vào giỏ hàng.`);
-        getCart();
+        const cartItem = {
+          product_detail_id: response.data.product_detail_id,
+          product_name: product.product_name,
+          img_url: selectedDetail.productImage.img_url,
+          size: selectedSize,
+          color: selectedColor,
+          price: product.price,
+          quantity: newItem.quantity,
+        };
+
+
+        const newCartCount = currentCartCount + newItem.quantity;
+
+        dispatch(addItemToCart(cartItem));
+        dispatch(CartCount(newCartCount));
+        alert("Thêm sản phẩm vào giỏ hàng thành công!");
+      } else {
+        alert(response.data.message || "Không thể thêm sản phẩm vào giỏ hàng.");
       }
     } catch (error) {
-      console.error("Error adding to cart:", error);
-      alert("Có lỗi xảy ra khi thêm sản phẩm vào giỏ hàng. Vui lòng thử lại.");
+      console.error("Lỗi khi thêm sản phẩm vào giỏ hàng:", error);
+      alert("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.");
     }
   };
-
+  const handleSizeSelect = (size) => setSelectedSize(size);
+  const handleColorSelect = (color) => setSelectedColor(color);
+  const incrementQuantity = () => setQuantity(quantity + 1);
+  const decrementQuantity = () => {
+    if (quantity > 1) setQuantity(quantity - 1);
+  };
 
   const handleBuyNow = () => {
-    navigate("/checkout");
+    const selectedDetail = product.detail.find(
+      (detail) =>
+        detail.size.size_name === selectedSize &&
+        detail.color.color_name === selectedColor
+    );
+
+    if (!selectedDetail) {
+      alert("Vui lòng chọn kích thước và màu sắc trước khi mua hàng.");
+      return;
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -105,14 +127,19 @@ const ProductDetails = () => {
     <div className="product-detail">
       <div className="product-detail-top">
         <div className="product-image">
-          <img src={`${API_URL}/img/${product.detail[0]?.productImage?.img_url}`} alt={product.product_name} />
-
+          <img
+            src={`${API_URL}/img/${product.detail[0]?.productImage?.img_url}`}
+            alt={product.product_name}
+          />
         </div>
 
         <div className="product-info">
           <h1>{product.product_name}</h1>
           <p className="price">
-            {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(product.price)}
+            {new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(product.price)}
           </p>
 
           <div className="options">
@@ -122,7 +149,9 @@ const ProductDetails = () => {
                 <button
                   key={detail.size.size_name}
                   onClick={() => handleSizeSelect(detail.size.size_name)}
-                  className={`${selectedSize === detail.size.size_name ? "bg-blue-500 text-black" : "bg-gray-200 text-black"
+                  className={`${selectedSize === detail.size.size_name
+                    ? "bg-blue-500 text-black"
+                    : "bg-gray-200 text-black"
                     } p-2 m-1 rounded`}
                 >
                   {detail.size.size_name}
@@ -135,7 +164,9 @@ const ProductDetails = () => {
                 <button
                   key={detail.color.color_id}
                   onClick={() => handleColorSelect(detail.color.color_name)}
-                  className={`${selectedColor === detail.color.color_name ? "bg-blue-500 text-black" : "bg-gray-200 text-black"
+                  className={`${selectedColor === detail.color.color_name
+                    ? "bg-blue-500 text-black"
+                    : "bg-gray-200 text-black"
                     } p-2 m-1 rounded`}
                 >
                   {detail.color.color_name}
@@ -148,13 +179,21 @@ const ProductDetails = () => {
             <h4>Số lượng:</h4>
             <div className="buy-column">
               <div className="quantity-selector">
-                <button className="decrement" onClick={decrementQuantity}>-</button>
+                <button className="decrement" onClick={decrementQuantity}>
+                  -
+                </button>
                 <span className="quantity">{quantity}</span>
-                <button className="increment" onClick={incrementQuantity}>+</button>
+                <button className="increment" onClick={incrementQuantity}>
+                  +
+                </button>
               </div>
               <div className="buttons">
-                <button className="buy-now" onClick={handleBuyNow}>Mua Ngay</button>
-                <button className="add-to-cart" onClick={addToCart}>Thêm giỏ hàng</button>
+                <button className="buy-now" onClick={handleBuyNow}>
+                  Mua Ngay
+                </button>
+                <button className="add-to-cart" onClick={addToCartHandler}>
+                  Thêm giỏ hàng
+                </button>
               </div>
             </div>
 
@@ -209,41 +248,16 @@ const ProductDetails = () => {
                     <i className="fa fa-thumbs-up mr-2"></i> {comment.likes}
                   </button>
                   <button className="reply-btn text-blue-600 hover:text-blue-700 text-sm flex items-center">
-                    <i className="fa fa-reply mr-2"></i> Trả lời
+                    <i className="fa fa-comment-dots mr-2"></i> Trả lời
                   </button>
                 </div>
-
-                {/* Nếu có trả lời, hiển thị chúng */}
-                {comment.replies && comment.replies.length > 0 && (
-                  <div className="replies mt-4 pl-10">
-                    {comment.replies.map((reply, idx) => (
-                      <div key={idx} className="reply-item mb-4">
-                        <div className="reply-header flex items-center mb-2">
-                          <img
-                            src={reply.user.avatar || "https://via.placeholder.com/40"}
-                            alt="User Avatar"
-                            className="w-8 h-8 rounded-full mr-3"
-                          />
-                          <div className="reply-user flex flex-col">
-                            <span className="font-semibold text-xs">{reply.user.name}</span>
-                            <span className="text-xs text-gray-500">{reply.timestamp}</span>
-                          </div>
-                        </div>
-                        <p className="reply-text text-xs text-gray-700">{reply.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
             ))
           ) : (
-            <p className="text-gray-500">Chưa có bình luận nào.</p>
+            <p>Chưa có bình luận nào.</p>
           )}
         </div>
-
       </div>
-
-
     </div>
   );
 };

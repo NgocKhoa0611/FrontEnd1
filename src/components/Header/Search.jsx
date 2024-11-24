@@ -2,28 +2,44 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import logo from "../../assets/images/logo.png";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useSelector } from 'react-redux';
+import { CartCount, SetCartItems } from '../../../redux/slices/cartslice';
+import { persistor } from '../../../redux/store'; //
 
 const Search = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [user, setUser] = useState(null);
-  const [cartCount, setCartCount] = useState(0);
+  const dispatch = useDispatch();
+  const cartCount = useSelector((state) => state.cart.cartCount);
+  console.log('cartcount', cartCount);
 
 
   useEffect(() => {
-    const token = document.cookie.split("; ").find(row => row.startsWith("token="));
+    const token = document.cookie
+      .split("; ")
+      .find(row => row.startsWith("token="))
+      ?.split("=")[1];
+
     if (token) {
       setIsLoggedIn(true);
       fetchUser();
       fetchCartCount();
+    } else {
+      persistor.purge();
+      setIsLoggedIn(false);
+      console.log("No token found. Skipping fetchCartCount.");
     }
   }, []);
+
   const fetchCartCount = async () => {
     try {
       const response = await axios.get("http://localhost:8000/cart/count", {
         withCredentials: true,
       });
-      setCartCount(response.data.count);
+      const count = response.data.count;
+      dispatch(CartCount(count));
     } catch (error) {
       console.error("Error fetching cart count:", error);
     }
@@ -52,7 +68,6 @@ const Search = () => {
       console.error("Error fetching user:", error);
     }
   };
-
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";

@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { clearCart } from '../../../redux/slices/cartslice'; // Adjust the path based on your folder structure
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import './index.css';
 
 const Checkout = () => {
+  const dispatch = useDispatch();
+  const [errorMessage, setErrorMessage] = useState("");
+  const cartItems = useSelector((state) => state.order.selectedItems);
+  const totalAmount = useSelector((state) => state.order.totalAmount);
+
   const [formData, setFormData] = useState({
     email: '',
     fullName: '',
@@ -10,24 +18,17 @@ const Checkout = () => {
     address: '',
     city: '',
     notes: '',
-    paymentMethod: 'bankTransfer' // Default payment method
+    paymentMethod: 'bankTransfer',
   });
 
-  const [cartItems, setCartItems] = useState([]);
-  const [orderSuccess, setOrderSuccess] = useState(false); // State for success message
-
-  useEffect(() => {
-    // Retrieve cart data from localStorage
-    const storedCart = JSON.parse(localStorage.getItem('cart')) || [];
-    setCartItems(storedCart);
-  }, []);
+  const [orderSuccess, setOrderSuccess] = useState(false);
 
   useEffect(() => {
     if (orderSuccess) {
       const timer = setTimeout(() => {
-        setOrderSuccess(false); // Ẩn thông báo sau 3 giây
+        setOrderSuccess(false);
       }, 3000);
-      return () => clearTimeout(timer); // Dọn dẹp timer
+      return () => clearTimeout(timer);
     }
   }, [orderSuccess]);
 
@@ -36,33 +37,48 @@ const Checkout = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simulate order submission
-    console.log('Form submitted:', formData);
+    try {
+      // Cấu trúc dữ liệu gửi đến API
+      const orderData = {
+        total_price: cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0),
+        payment_method: formData.paymentMethod,
+        order_status: 'Chờ xử lý', // Default status
+        order_details: cartItems.map((item) => ({
+          product_detail_id: item.product_detail_id,
+          quantity: item.quantity,
+          payment_date: null,
+          total_amount: item.price * item.quantity,
+        })),
+      };
 
-    // Clear form data and show success message
-    setFormData({
-      email: '',
-      fullName: '',
-      phoneNumber: '',
-      address: '',
-      city: '',
-      notes: '',
-      paymentMethod: 'bankTransfer'
-    });
+      // Gửi yêu cầu POST đến API
+      const response = await axios.post('http://localhost:8000/orders', orderData,
+        { withCredentials: true },
+      );
 
-    setOrderSuccess(true);
+      console.log('Order Response:', response.data);
 
-    // Clear cart after successful order
-    setCartItems([]);
-    localStorage.removeItem('cart');
-  };
+      setOrderSuccess(true);
+      setErrorMessage('');
 
-  // Calculate subtotal and total prices
-  const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + item.quantity * item.price, 0);
+      setFormData({
+        email: '',
+        fullName: '',
+        phoneNumber: '',
+        address: '',
+        city: '',
+        notes: '',
+        paymentMethod: 'Tiền mặt',
+      });
+
+      dispatch(clearCart());
+    } catch (error) {
+      console.error('Error creating order:', error);
+      setErrorMessage('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
+    }
   };
 
   const formatCurrency = (amount) => {
@@ -72,8 +88,8 @@ const Checkout = () => {
     }).format(amount);
   };
 
-  const subtotal = calculateSubtotal();
-  const shippingFee = 0; // Can be adjusted based on conditions
+  const subtotal = totalAmount;
+  const shippingFee = 0; // Adjust this value as needed
   const total = subtotal + shippingFee;
 
   return (
@@ -196,21 +212,20 @@ const Checkout = () => {
             <ul className="cart-items-list">
               {cartItems.map((item, index) => (
                 <li key={index} className="cart-item">
-                  <img src={item.image} alt={item.product_name} className="item-image" />
+                  <img src={`http://localhost:8000/img/${item.ProductDetail.productImage.img_url}`} alt={item.product.product_name} className="item-image" />
                   <div className="item-details">
-                    <span className="item-name">{item.product_name}</span>
+                    <span className="item-name">{item.product.product_name}</span>
                   </div>
                   <span className="item-price">
                     {formatCurrency(item.price)} x {item.quantity}
                   </span>
-                  <span className="item-total">
+                  {/* <span className="item-total">
                     {formatCurrency(item.price * item.quantity)}
-                  </span>
+                  </span> */}
                 </li>
               ))}
             </ul>
 
-            {/* Price Breakdown */}
             <div className="price-breakdown">
               <div className="price-row">
                 <span>Tạm tính</span>
