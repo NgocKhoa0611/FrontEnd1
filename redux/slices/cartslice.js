@@ -52,7 +52,7 @@ const cartSlice = createSlice({
             state.cartCount = 0;  // Reset cartCount khi giỏ hàng bị xóa
         },
         CartCount: (state, action) => {
-            state.cartCount = action.payload; // Cập nhật số lượng giỏ hàng từ API
+            state.cartCount = action.payload;
         },
         SetCartItems: (state, action) => {
             state.items = action.payload;

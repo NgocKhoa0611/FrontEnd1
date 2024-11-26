@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { clearCart } from '../../../redux/slices/cartslice'; // Adjust the path based on your folder structure
+import { clearSelectedItems } from '../../../redux/slices/orderslice'; // Adjust the path based on your folder structure
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './index.css';
@@ -72,9 +72,10 @@ const Checkout = () => {
         city: '',
         notes: '',
         paymentMethod: 'Tiền mặt',
+        payment_date: ''
       });
 
-      dispatch(clearCart());
+      dispatch(clearSelectedItems());
     } catch (error) {
       console.error('Error creating order:', error);
       setErrorMessage('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');

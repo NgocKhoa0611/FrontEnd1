@@ -16,6 +16,9 @@ const orderSlice = createSlice({
             state.totalAmount = totalAmount || 0;
         },
         clearSelectedItems: (state) => {
+            state.selectedItems = state.selectedItems.filter(
+                (item) => !state.selectedItems.includes(item.product_detail_id)
+            );
             state.selectedItems = [];
             state.totalAmount = 0;
         },

@@ -34,6 +34,14 @@ const Search = () => {
   }, []);
 
   const fetchCartCount = async () => {
+    const token = document.cookie
+      .split("; ")
+      .find(row => row.startsWith("token="))
+      ?.split("=")[1];
+    if (!token) {
+      console.log("No token found. Fetching cart count skipped.");
+      return;
+    }
     try {
       const response = await axios.get("http://localhost:8000/cart/count", {
         withCredentials: true,

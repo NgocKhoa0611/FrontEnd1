@@ -31,6 +31,12 @@ const Cart = () => {
     getCart();
   }, []);
 
+  useEffect(() => {
+    const { subtotal, voucher, total } = calculateTotal();
+    console.log('Updated totals:', { subtotal, voucher, total });
+  }, [selectedProducts]);
+
+
   const handleCheckboxChange = (cartDetail) => {
     setSelectedProducts((prevSelected) => {
       const isAlreadySelected = prevSelected.some(
@@ -70,8 +76,6 @@ const Cart = () => {
     });
   };
 
-
-
   const calculateTotal = () => {
     if (!selectedProducts || selectedProducts.length === 0) return { subtotal: 0, voucher: 0, total: 0 };
 
@@ -82,8 +86,6 @@ const Cart = () => {
     const voucher = 0; // Update this with voucher logic if needed
     return { subtotal, voucher, total: subtotal + voucher };
   };
-
-
 
   console.log('Selected Products before navigating:', selectedProducts);
 
@@ -98,20 +100,11 @@ const Cart = () => {
       );
 
       if (response.data.cartDetail) {
-        // Cập nhật giỏ hàng trong Redux
         dispatch(updateItemQuantity({
           product_detail_id: response.data.cartDetail.product_detail_id,
           quantity: response.data.cartDetail.quantity,
         }));
-        const updatedCartCount = cart.cartDetail.reduce(
-          (total, item) => total + (item.ProductDetail.product_detail_id === product_detail_id
-            ? response.data.cartDetail.quantity
-            : item.quantity),
-          0
-        );
-        dispatch(CartCount(updatedCartCount));
 
-        // Cập nhật UI nếu cần
         setCart((prevCart) => ({
           ...prevCart,
           cartDetail: prevCart.cartDetail.map(item =>
@@ -120,6 +113,20 @@ const Cart = () => {
               : item
           ),
         }));
+
+        const updatedCartCount = response.data.cart.reduce(
+          (total, item) => total + item.quantity,
+          0
+        );
+        dispatch(CartCount(updatedCartCount));
+
+        setSelectedProducts((prevSelected) =>
+          prevSelected.map(product =>
+            product.cart_detail_id === response.data.cartDetail.cart_detail_id
+              ? { ...product, quantity: response.data.cartDetail.quantity }
+              : product
+          )
+        );
       }
     } catch (error) {
       console.error("Error increasing quantity:", error.response?.data || error.message);
@@ -136,19 +143,11 @@ const Cart = () => {
       );
 
       if (response.data.cartDetail) {
-        // Cập nhật giỏ hàng trong Redux
         dispatch(updateItemQuantity({
           product_detail_id: response.data.cartDetail.product_detail_id,
           quantity: response.data.cartDetail.quantity,
         }));
-        const updatedCartCount = cart.cartDetail.reduce(
-          (total, item) => total + (item.ProductDetail.product_detail_id === product_detail_id
-            ? response.data.cartDetail.quantity
-            : item.quantity),
-          0
-        );
-        dispatch(CartCount(updatedCartCount));
-        // Cập nhật UI nếu cần
+
         setCart((prevCart) => ({
           ...prevCart,
           cartDetail: prevCart.cartDetail.map(item =>
@@ -157,12 +156,21 @@ const Cart = () => {
               : item
           ),
         }));
+
+        setSelectedProducts((prevSelected) =>
+          prevSelected.map(product =>
+            product.cart_detail_id === response.data.cartDetail.cart_detail_id
+              ? { ...product, quantity: response.data.cartDetail.quantity }
+              : product
+          )
+        );
       }
     } catch (error) {
       console.error("Error decreasing quantity:", error.response?.data || error.message);
       alert("Không thể giảm số lượng sản phẩm.");
     }
   };
+
 
   const handleRemove = async (product_detail_id) => {
     try {
