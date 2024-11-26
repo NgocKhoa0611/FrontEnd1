@@ -76,20 +76,21 @@ export default function Product({ shopItems = {} }) {
               {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
             </h5>
           )}
-          <div className="flex flex-col gap-2 mt-4">
-            <button
-              onClick={addToCart}
-              className="mt-1 w-full mt-2 px-5 bg-[#0f3460] text-white py-2"
-            >
-              Thêm vào giỏ hàng <i className="fa-solid fa-cart-plus ml-1"></i>
-            </button>
-            <button
-              onClick={() => navigate('/checkout')}
-              className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors"
-            >
-              Mua ngay <i className="fa-solid fa-bolt ml-1"></i>
-            </button>
-          </div>
+   <div className="flex justify-between items-center mt-4 gap-4">
+  <button
+    onClick={addToCart}
+    className="flex-1 px-5 py-2 bg-[#0f3460] text-white rounded-lg font-bold text-sm hover:bg-[#072344] transition-all duration-200 flex items-center justify-center"
+  >
+    Add to cart
+  </button>
+  <button
+    onClick={() => navigate('/checkout')}
+    className="flex-1 px-5 py-2 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 transition-all duration-200 flex items-center justify-center"
+  >
+    Mua ngay
+  </button>
+</div>
+
         </div>
       </div>
     </div>

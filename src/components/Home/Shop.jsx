@@ -38,7 +38,7 @@ const Shop = () => {
             <h2>Sản phẩm nổi bật</h2>
           </div>
           <div className="heading-right row">
-            <span>View all</span>
+            <span>Xem tất cả</span>
             <i className="fa-solid fa-caret-right"></i>
           </div>
         </div>
