@@ -145,6 +145,7 @@
   .add-to-cart {
     padding: 8px;
     margin-right: 10px;
+    border-radius: 8px;
     cursor: pointer;
     color: #fff;
     background-color: #0c056b;
@@ -216,4 +217,18 @@
 @keyframes slideDown {
   from { transform: translateY(-20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+.buy-now {
+  padding: 8px;
+  margin-right: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  background-color: #ff0000; /* Màu đỏ */
+  border: none;
+  font-size: 0.8rem;
+}
+
+.buy-now:hover {
+  background-color: #cc0000; /* Màu đỏ đậm hơn khi hover */
 }
