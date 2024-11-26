@@ -13,6 +13,7 @@ import Category from "./pages/Category.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Account from "./pages/account.jsx";
 
+
 function App() {
   return (
     <>

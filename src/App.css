@@ -141,7 +141,7 @@ button {
   border-radius: 8px;
   box-shadow: rgb(3 0 71 / 9%) 0px 1px 3px;
   margin: 10px;
-  height: 450px;
+  /* height: 450px; */
 }
 .img img{
   height: 200px;

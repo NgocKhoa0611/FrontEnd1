@@ -1,25 +1,18 @@
 import axios from "axios";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 export default function Product({ shopItems = {} }) {
   const { product_id, product_name, price, price_promotion, detail = [] } = shopItems;
   const imageUrl = `http://localhost:8000/img/${detail[0]?.productImage?.img_url || 'default-image.jpg'}`;
-  const [cart, setCart] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false); // Trạng thái yêu thích
   const navigate = useNavigate();
 
-  const getCart = async () => {
-    try {
-      const response = await axios.get('http://localhost:8000/cart', {
-        withCredentials: true,
-      });
-      console.log('Cart items:', response.data.cart);
-      setCart(response.data.cart);
-    } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
-      console.error('Error fetching cart:', errorMessage);
-    }
+  const toggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    // Gửi yêu cầu lưu trạng thái yêu thích lên server nếu cần
   };
+
   const addToCart = async () => {
     const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
     if (!token) {
@@ -34,12 +27,11 @@ export default function Product({ shopItems = {} }) {
           quantity: 1,
         },
         {
-          withCredentials: true,  // Đảm bảo cookie sẽ được gửi cùng với yêu cầu
+          withCredentials: true,
         });
       if (response.status === 200) {
         alert(`${product_name} đã thêm vào giỏ hàng`);
       }
-      getCart()
     } catch (error) {
       console.error('Error adding to cart:', error);
     }
@@ -47,8 +39,9 @@ export default function Product({ shopItems = {} }) {
 
   return (
     <div className="box">
-      <div className="mtop m-2 rounded-lg shadow-md overflow-hidden">
-        <div className="img relative w-full aspect-[4/3]">
+      <div className="m-2 rounded-lg shadow-md overflow-hidden bg-white">
+        <div className="relative w-full aspect-[4/3]">
+          {/* Hình ảnh sản phẩm */}
           <Link to={`/product/${product_id}`} className="absolute top-0 left-0 right-0 bottom-0">
             <img
               src={imageUrl}
@@ -56,30 +49,45 @@ export default function Product({ shopItems = {} }) {
               className="w-full h-full object-cover"
             />
           </Link>
+          {/* Icon yêu thích */}
+          <div
+            className="absolute top-2 right-2 bg-white p-2 rounded-full shadow-md cursor-pointer hover:scale-110 transition-transform"
+            onClick={toggleFavorite}
+          >
+            <i
+              className={`fa${isFavorite ? "s" : "r"} fa-heart text-red-500`}
+              aria-hidden="true"
+            ></i>
+          </div>
         </div>
-        <div className="product-details mt-4">
-          <h5 className="text-center text-sm font-medium truncate" style={{ margin: '0' }}>
-            {product_name}
-          </h5>
-          <div>
-            {price_promotion > 0 ? (
-              <>
-                <div className="flex justify-center w-full gap-4 mt-2">
-                  <h5 className="text-base text-red-500 font-semibold text-center">
-                    {price_promotion.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
-                  </h5>
-                  <h5 className="text-base line-through text-gray-500 text-center">
-                    {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
-                  </h5>
-                </div>
-              </>
-            ) : (
-              <h5 className="text-base font-semibold text-center mt-2">
+        <div className="product-details p-4">
+          <h5 className="text-center text-sm font-medium truncate">{product_name}</h5>
+          {price_promotion > 0 ? (
+            <div className="flex justify-center items-center gap-4 mt-2">
+              <h5 className="text-base text-red-500 font-semibold">
+                {price_promotion.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
+              </h5>
+              <h5 className="text-base line-through text-gray-500">
                 {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
               </h5>
-            )}
-            <button onClick={addToCart} className="mt-1 w-full mt-2 px-5 bg-[#0f3460] text-white py-2">
-              Thêm vào giỏ hàng  <i className="fa-solid fa-cart-plus ml-1 bg-"></i>
+            </div>
+          ) : (
+            <h5 className="text-base font-semibold text-center mt-2">
+              {price.toLocaleString('vi-VN', { minimumFractionDigits: 0 })}đ
+            </h5>
+          )}
+          <div className="flex flex-col gap-2 mt-4">
+            <button
+              onClick={addToCart}
+              className="mt-1 w-full mt-2 px-5 bg-[#0f3460] text-white py-2"
+            >
+              Thêm vào giỏ hàng <i className="fa-solid fa-cart-plus ml-1"></i>
+            </button>
+            <button
+              onClick={() => navigate('/checkout')}
+              className="w-full bg-red-600 text-white py-2 rounded hover:bg-red-700 transition-colors"
+            >
+              Mua ngay <i className="fa-solid fa-bolt ml-1"></i>
             </button>
           </div>
         </div>
