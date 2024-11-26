@@ -28,6 +28,7 @@ const Search = () => {
       fetchCartCount();
     } else {
       persistor.purge();
+      dispatch(CartCount(0));
       setIsLoggedIn(false);
       console.log("No token found. Skipping fetchCartCount.");
     }

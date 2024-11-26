@@ -114,10 +114,7 @@ const Cart = () => {
           ),
         }));
 
-        const updatedCartCount = response.data.cart.reduce(
-          (total, item) => total + item.quantity,
-          0
-        );
+        const updatedCartCount = response.data.cartDetail.quantity;
         dispatch(CartCount(updatedCartCount));
 
         setSelectedProducts((prevSelected) =>
@@ -157,6 +154,9 @@ const Cart = () => {
           ),
         }));
 
+        const updatedCartCount = response.data.cartDetail.quantity;
+        dispatch(CartCount(updatedCartCount));
+
         setSelectedProducts((prevSelected) =>
           prevSelected.map(product =>
             product.cart_detail_id === response.data.cartDetail.cart_detail_id
@@ -170,7 +170,6 @@ const Cart = () => {
       alert("Không thể giảm số lượng sản phẩm.");
     }
   };
-
 
   const handleRemove = async (product_detail_id) => {
     try {
@@ -212,7 +211,6 @@ const Cart = () => {
       }
     }
   };
-
 
   if (loading) {
     return <div>Loading...</div>;
