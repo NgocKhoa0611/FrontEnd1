@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { updateItemQuantity, CartCount, removeItemFromCart } from '../../../redux/slices/cartslice';
 import { setSelectedItems } from '../../../redux/slices/orderslice';
 import { } from '../../../redux/slices/cartslice';
+import { useSelector } from 'react-redux';
 
 const Cart = () => {
   const [cart, setCart] = useState({ cartDetail: [] });
@@ -12,6 +13,7 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const currentCartCount = useSelector((state) => state.cart.cartCount || 0);
 
   useEffect(() => {
     const getCart = async () => {
@@ -87,8 +89,6 @@ const Cart = () => {
     return { subtotal, voucher, total: subtotal + voucher };
   };
 
-  console.log('Selected Products before navigating:', selectedProducts);
-
   const { subtotal, voucher, total } = calculateTotal();
 
   const handleIncrease = async (product_detail_id) => {
@@ -100,27 +100,39 @@ const Cart = () => {
       );
 
       if (response.data.cartDetail) {
+        const updatedQuantity = response.data.cartDetail.quantity;
+
+        // Lấy số lượng hiện tại từ cart state hoặc Redux store
+        const existingItem = cart.cartDetail.find(item => item.product_detail_id === product_detail_id);
+        const existingItemQuantity = existingItem ? existingItem.quantity : 0;
+
+        // Tính chênh lệch
+        const quantityDifference = updatedQuantity - existingItemQuantity;
+
+        // Dispatch cập nhật số lượng cho Redux store
         dispatch(updateItemQuantity({
           product_detail_id: response.data.cartDetail.product_detail_id,
-          quantity: response.data.cartDetail.quantity,
+          quantity: updatedQuantity,
         }));
 
+        // Cập nhật tổng số lượng sản phẩm
+        dispatch(CartCount(currentCartCount + quantityDifference));
+
+        // Cập nhật giỏ hàng trong component state
         setCart((prevCart) => ({
           ...prevCart,
           cartDetail: prevCart.cartDetail.map(item =>
             item.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? { ...item, quantity: response.data.cartDetail.quantity }
+              ? { ...item, quantity: updatedQuantity }
               : item
           ),
         }));
 
-        const updatedCartCount = response.data.cartDetail.quantity;
-        dispatch(CartCount(updatedCartCount));
-
+        // Đồng bộ danh sách sản phẩm đã chọn
         setSelectedProducts((prevSelected) =>
           prevSelected.map(product =>
             product.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? { ...product, quantity: response.data.cartDetail.quantity }
+              ? { ...product, quantity: updatedQuantity }
               : product
           )
         );
@@ -140,27 +152,39 @@ const Cart = () => {
       );
 
       if (response.data.cartDetail) {
+        const updatedQuantity = response.data.cartDetail.quantity;
+
+        // Lấy số lượng hiện tại của sản phẩm trong giỏ
+        const existingItem = cart.cartDetail.find(item => item.product_detail_id === product_detail_id);
+        const existingItemQuantity = existingItem ? existingItem.quantity : 0;
+
+        // Tính chênh lệch
+        const quantityDifference = updatedQuantity - existingItemQuantity;
+
+        // Dispatch cập nhật số lượng cho Redux store
         dispatch(updateItemQuantity({
           product_detail_id: response.data.cartDetail.product_detail_id,
-          quantity: response.data.cartDetail.quantity,
+          quantity: updatedQuantity,
         }));
 
+        // Cập nhật tổng số lượng sản phẩm
+        dispatch(CartCount(currentCartCount + quantityDifference));
+
+        // Cập nhật giỏ hàng trong component state
         setCart((prevCart) => ({
           ...prevCart,
           cartDetail: prevCart.cartDetail.map(item =>
             item.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? { ...item, quantity: response.data.cartDetail.quantity }
+              ? { ...item, quantity: updatedQuantity }
               : item
           ),
         }));
 
-        const updatedCartCount = response.data.cartDetail.quantity;
-        dispatch(CartCount(updatedCartCount));
-
+        // Đồng bộ danh sách sản phẩm đã chọn
         setSelectedProducts((prevSelected) =>
           prevSelected.map(product =>
             product.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? { ...product, quantity: response.data.cartDetail.quantity }
+              ? { ...product, quantity: updatedQuantity }
               : product
           )
         );
@@ -172,19 +196,27 @@ const Cart = () => {
   };
 
   const handleRemove = async (product_detail_id) => {
+    // Confirm the deletion with the user first
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?");
+    if (!confirmDelete) {
+      return; // If the user cancels, exit the function
+    }
+
     try {
       console.log('Removing product with ID:', product_detail_id);
 
-      const response = await axios.delete(`http://localhost:8000/cart/${product_detail_id}`,
-        { withCredentials: true });
+      const response = await axios.delete(`http://localhost:8000/cart/${product_detail_id}`, {
+        withCredentials: true
+      });
 
       if (response.status === 200) {
-
         dispatch(removeItemFromCart(product_detail_id));
-        const updatedCartResponse = await axios.get('http://localhost:8000/cart',
-          { withCredentials: true });
+        const updatedCartResponse = await axios.get('http://localhost:8000/cart', {
+          withCredentials: true
+        });
 
         setCart(updatedCartResponse.data.cart);
+
         const updatedCartCount = cart.cartDetail.reduce(
           (total, item) =>
             total +

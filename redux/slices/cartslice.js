@@ -22,8 +22,8 @@ const cartSlice = createSlice({
                     product_detail_id: newItem.product_detail_id,
                     product_name: newItem.product_name,
                     img_url: newItem.img_url || "",
-                    size: newItem.size.size_name,
-                    color: newItem.color.color_name,
+                    size: newItem.size,
+                    color: newItem.color,
                     price: newItem.price,
                     quantity: newItem.quantity,
                 });
