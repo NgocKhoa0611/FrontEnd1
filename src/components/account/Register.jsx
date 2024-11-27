@@ -52,6 +52,11 @@ const Register = () => {
 
       <div className="flex min-h-full flex-col justify-center sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <img
+            className="mx-auto h-12 w-auto"
+            src="https://imgur.com/WRxNbZj.png"
+            alt="Your Company"
+          />
           <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
             ĐĂNG KÝ TÀI KHOẢN
           </h2>

@@ -1,20 +1,58 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import logo from "../../assets/images/logo.svg";
+import logo from "../../assets/images/logo.png";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useSelector } from 'react-redux';
+import { CartCount, SetCartItems } from '../../../redux/slices/cartslice';
+import { persistor } from '../../../redux/store'; //
 
 const Search = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [user, setUser] = useState(null);
+  const dispatch = useDispatch();
+  const cartCount = useSelector((state) => state.cart.cartCount);
+  console.log('cartcount', cartCount);
+
 
   useEffect(() => {
-    const token = document.cookie.split("; ").find(row => row.startsWith("token="));
+    const token = document.cookie
+      .split("; ")
+      .find(row => row.startsWith("token="))
+      ?.split("=")[1];
+
     if (token) {
       setIsLoggedIn(true);
       fetchUser();
+      fetchCartCount();
+    } else {
+      persistor.purge();
+      dispatch(CartCount(0));
+      setIsLoggedIn(false);
+      console.log("No token found. Skipping fetchCartCount.");
     }
   }, []);
+
+  const fetchCartCount = async () => {
+    const token = document.cookie
+      .split("; ")
+      .find(row => row.startsWith("token="))
+      ?.split("=")[1];
+    if (!token) {
+      console.log("No token found. Fetching cart count skipped.");
+      return;
+    }
+    try {
+      const response = await axios.get("http://localhost:8000/cart/count", {
+        withCredentials: true,
+      });
+      const count = response.data.count;
+      dispatch(CartCount(count));
+    } catch (error) {
+      console.error("Error fetching cart count:", error);
+    }
+  };
 
   const fetchUser = async () => {
     try {
@@ -40,7 +78,6 @@ const Search = () => {
     }
   };
 
-
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
     setIsLoggedIn(false);
@@ -63,7 +100,7 @@ const Search = () => {
   }, []);
 
   return (
-    <section section className="search" >
+    <section className="search" >
       <div className="container c_flex">
         <Link className="logo width" to="/">
           <img src={logo} alt="Logo" />
@@ -72,7 +109,7 @@ const Search = () => {
         <div className="search-box f_flex">
           <i className="fa fa-search"></i>
           <input type="text" placeholder="Search and hit enter..." />
-          <span>All Category</span>
+          <span>Tìm kiếm</span>
         </div>
 
         <div className="icon f_flex width">
@@ -105,12 +142,31 @@ const Search = () => {
               </Link>
             </div>
           )}
-          <div className="cart">
+
+          {/* Favorite Icon */}
+          <div className="favorite relative">
+            <Link to="/favorites">
+              <i className="fa fa-heart icon-circle"></i>
+              {/* Example: Add a badge for wishlist count if desired */}
+              {/* <span className="favorite-count absolute -top-2 -right-2 bg-red-500 text-white text-xs text-center rounded-full px-2">
+        {wishlistCount}
+      </span> */}
+            </Link>
+          </div>
+
+          {/* Cart Icon */}
+          <div className="cart relative">
             <Link to="/cart">
               <i className="fa fa-shopping-bag icon-circle"></i>
+              {cartCount > 0 && (
+                <span className="cart-count absolute -top-2 -right-2 bg-red-500 text-white text-xs text-center rounded-full px-2">
+                  {cartCount}
+                </span>
+              )}
             </Link>
           </div>
         </div>
+
       </div>
     </section >
   );
