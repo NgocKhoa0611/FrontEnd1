@@ -6,6 +6,7 @@ import "./index.css";
 import { useDispatch } from "react-redux";
 import { addItemToCart, CartCount } from '../../../redux/slices/cartslice';
 import { useSelector } from 'react-redux';
+import { toast, Toaster } from 'react-hot-toast'; // Import toast
 
 const ProductDetails = () => {
   const { id } = useParams(); // Get product ID from route parameters
@@ -87,12 +88,12 @@ const ProductDetails = () => {
           quantity: newItem.quantity,
         };
 
-
         const newCartCount = currentCartCount + newItem.quantity;
 
         dispatch(addItemToCart(cartItem));
         dispatch(CartCount(newCartCount));
-        alert("Thêm sản phẩm vào giỏ hàng thành công!");
+
+        toast.success("Thêm sản phẩm vào giỏ hàng thành công!"); // Use toast.success for success message
       } else {
         alert(response.data.message || "Không thể thêm sản phẩm vào giỏ hàng.");
       }
@@ -101,6 +102,7 @@ const ProductDetails = () => {
       alert("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.");
     }
   };
+
   const handleSizeSelect = (size) => setSelectedSize(size);
   const handleColorSelect = (color) => setSelectedColor(color);
   const incrementQuantity = () => setQuantity(quantity + 1);
@@ -125,6 +127,7 @@ const ProductDetails = () => {
 
   return (
     <div className="product-detail">
+      {/* Product Detail */}
       <div className="product-detail-top">
         <div className="product-image">
           <img
@@ -214,6 +217,7 @@ const ProductDetails = () => {
         </div>
       </div>
 
+      {/* Comments Section */}
       <div className="content-cmt mt-10 px-5">
         <h3 className="text-xl font-semibold">Bình luận</h3>
         <div className="comment-form mt-5">
@@ -234,30 +238,21 @@ const ProductDetails = () => {
                   <img
                     src={comment.user.avatar || "https://via.placeholder.com/40"}
                     alt="User Avatar"
-                    className="w-10 h-10 rounded-full mr-4"
+                    className="w-10 h-10 rounded-full object-cover mr-3"
                   />
-                  <div className="comment-user flex flex-col">
-                    <span className="font-semibold text-sm">{comment.user.name}</span>
-                    <span className="text-xs text-gray-500">{comment.timestamp}</span>
-                  </div>
+                  <p className="font-semibold">{comment.user.name}</p>
                 </div>
-                <p className="comment-text text-sm text-gray-800 mb-3">{comment.text}</p>
-
-                <div className="comment-actions flex items-center">
-                  <button className="like-btn text-blue-600 hover:text-blue-700 text-sm flex items-center mr-5">
-                    <i className="fa fa-thumbs-up mr-2"></i> {comment.likes}
-                  </button>
-                  <button className="reply-btn text-blue-600 hover:text-blue-700 text-sm flex items-center">
-                    <i className="fa fa-comment-dots mr-2"></i> Trả lời
-                  </button>
-                </div>
+                <p className="comment-text">{comment.comment}</p>
               </div>
             ))
           ) : (
-            <p>Chưa có bình luận nào.</p>
+            <p>Chưa có bình luận nào</p>
           )}
         </div>
       </div>
+
+      {/* Toast container */}
+      <Toaster position="top-center" />
     </div>
   );
 };

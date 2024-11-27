@@ -142,6 +142,19 @@ const Search = () => {
               </Link>
             </div>
           )}
+
+          {/* Favorite Icon */}
+          <div className="favorite relative">
+            <Link to="/favorites">
+              <i className="fa fa-heart icon-circle"></i>
+              {/* Example: Add a badge for wishlist count if desired */}
+              {/* <span className="favorite-count absolute -top-2 -right-2 bg-red-500 text-white text-xs text-center rounded-full px-2">
+        {wishlistCount}
+      </span> */}
+            </Link>
+          </div>
+
+          {/* Cart Icon */}
           <div className="cart relative">
             <Link to="/cart">
               <i className="fa fa-shopping-bag icon-circle"></i>
@@ -153,6 +166,7 @@ const Search = () => {
             </Link>
           </div>
         </div>
+
       </div>
     </section >
   );

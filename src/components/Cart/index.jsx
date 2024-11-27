@@ -247,17 +247,23 @@ const Cart = () => {
   if (loading) {
     return <div>Loading...</div>;
   }
-
   if (!cart || !cart.cartDetail || cart.cartDetail.length === 0) {
-    return <div>Giỏ hàng của bạn chưa có sản phẩm nào.</div>;
+    return (
+      <div className="flex justify-center items-center flex-col py-12">
+        <img
+          src="../../../public/shopping.png"
+          alt="Empty Cart"
+          className="w-64 h-64 mb-6" // Adjusted size to w-64 h-64
+        />
+        <p className="text-xl text-gray-700">Giỏ hàng của bạn chưa có sản phẩm nào.</p>
+      </div>
+    );
+
   }
+
 
   if (loading) {
     return <div>Loading...</div>;
-  }
-
-  if (!cart || !cart.cartDetail || cart.cartDetail.length === 0) {
-    return <div>Giỏ hàng của bạn chưa có sản phẩm nào.</div>;
   }
   return (
     <div className="bg-gray-50 py-8">

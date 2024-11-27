@@ -151,21 +151,7 @@ const Checkout = () => {
                 className="form-input"
               />
             </div>
-            <div className="form-group">
-              <select
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                required
-                className="form-input"
-              >
-                <option value="">Chọn tỉnh thành</option>
-                <option value="Hà Nội">Hà Nội</option>
-                <option value="Hồ Chí Minh">Hồ Chí Minh</option>
-                <option value="Đà Nẵng">Đà Nẵng</option>
-                {/* Add more cities as needed */}
-              </select>
-            </div>
+          
             <div className="form-group">
               <textarea
                 name="notes"

@@ -30,15 +30,21 @@ const Account = () => {
       if (!token) return;
 
       const payload = JSON.parse(atob(token.split('.')[1]));
-      console.log("ra", payload);
       const userId = payload.id;
 
       const response = await axios.get(`http://localhost:8000/user/${userId}`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         }
       });
+
       setUser(response.data);
+      setFormData({
+        name: response.data.name || "",
+        email: response.data.email || "",
+        phone: response.data.phone || "",
+        address: response.data.address || "",
+      });
       setFormData({
         name: response.data.name || "",
         email: response.data.email || "",
@@ -122,6 +128,21 @@ const Account = () => {
                 />
               </label>
               <p className="text-lg font-semibold text-gray-800">{user?.name || "Không có tên"}</p>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleChangeAvatar}
+                className="hidden"
+                id="avatar-upload"
+              />
+              <label htmlFor="avatar-upload">
+                <img
+                  src={`/path/to/avatars/${user?.avatar || "default-avatar.jpg"}`}
+                  alt="Avatar"
+                  className="w-24 h-24 rounded-full shadow-lg mb-4 cursor-pointer"
+                />
+              </label>
+              <p className="text-lg font-semibold text-gray-800">{user?.name || "Không có tên"}</p>
               <p className="text-sm text-gray-500">{user?.email || "N/A"}</p>
             </div>
             <ul className="space-y-6">
@@ -155,6 +176,7 @@ const Account = () => {
                 <form className="space-y-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">Họ và tên</label>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Họ và tên</label>
                     <input
                       type="text"
                       id="name"
@@ -164,6 +186,7 @@ const Account = () => {
                     />
                   </div>
                   <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                     <input
                       type="email"
@@ -175,6 +198,7 @@ const Account = () => {
                   </div>
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Số điện thoại</label>
+                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Số điện thoại</label>
                     <input
                       type="text"
                       id="phone"
@@ -185,6 +209,7 @@ const Account = () => {
                   </div>
                   <div>
                     <label htmlFor="address" className="block text-sm font-medium text-gray-700">Địa chỉ</label>
+                    <label htmlFor="address" className="block text-sm font-medium text-gray-700">Địa chỉ</label>
                     <input
                       type="text"
                       id="address"
@@ -192,6 +217,15 @@ const Account = () => {
                       value={formData.address}
                       onChange={handleInputChange}
                     />
+                  </div>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={handleUpdateUser}
+                      className="w-full mt-4 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
+                    >
+                      Cập nhật thông tin
+                    </button>
                   </div>
                   <div>
                     <button
@@ -234,13 +268,43 @@ const Account = () => {
                     )}
                   </tbody>
                 </table>
+                <div id="order-history" className="space-y-6">
+                  <h2 className="text-xl font-bold text-gray-800">Lịch sử đơn hàng</h2>
+                  <table className="w-full table-auto">
+                    <thead>
+                      <tr className="text-left">
+                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">ID Đơn Hàng</th>
+                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">Ngày Đặt</th>
+                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">Trạng Thái</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orders.length > 0 ? (
+                        orders.map(order => (
+                          <tr key={order.id} className="border-b">
+                            <td className="px-4 py-2">{order.id}</td>
+                            <td className="px-4 py-2">{order.date}</td>
+                            <td className="px-4 py-2">{order.status}</td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="text-center py-4">Không có đơn hàng nào.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
+
         </div>
       </div>
     </div>
-  );
+  )
 };
 
 export default Account;
+
+
