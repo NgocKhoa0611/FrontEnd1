@@ -128,21 +128,6 @@ const Account = () => {
                 />
               </label>
               <p className="text-lg font-semibold text-gray-800">{user?.name || "Không có tên"}</p>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleChangeAvatar}
-                className="hidden"
-                id="avatar-upload"
-              />
-              <label htmlFor="avatar-upload">
-                <img
-                  src={`/path/to/avatars/${user?.avatar || "default-avatar.jpg"}`}
-                  alt="Avatar"
-                  className="w-24 h-24 rounded-full shadow-lg mb-4 cursor-pointer"
-                />
-              </label>
-              <p className="text-lg font-semibold text-gray-800">{user?.name || "Không có tên"}</p>
               <p className="text-sm text-gray-500">{user?.email || "N/A"}</p>
             </div>
             <ul className="space-y-6">
@@ -176,7 +161,6 @@ const Account = () => {
                 <form className="space-y-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700">Họ và tên</label>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Họ và tên</label>
                     <input
                       type="text"
                       id="name"
@@ -186,7 +170,6 @@ const Account = () => {
                     />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
                     <input
                       type="email"
@@ -198,7 +181,6 @@ const Account = () => {
                   </div>
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Số điện thoại</label>
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Số điện thoại</label>
                     <input
                       type="text"
                       id="phone"
@@ -209,7 +191,6 @@ const Account = () => {
                   </div>
                   <div>
                     <label htmlFor="address" className="block text-sm font-medium text-gray-700">Địa chỉ</label>
-                    <label htmlFor="address" className="block text-sm font-medium text-gray-700">Địa chỉ</label>
                     <input
                       type="text"
                       id="address"
@@ -217,15 +198,6 @@ const Account = () => {
                       value={formData.address}
                       onChange={handleInputChange}
                     />
-                  </div>
-                  <div>
-                    <button
-                      type="button"
-                      onClick={handleUpdateUser}
-                      className="w-full mt-4 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
-                    >
-                      Cập nhật thông tin
-                    </button>
                   </div>
                   <div>
                     <button

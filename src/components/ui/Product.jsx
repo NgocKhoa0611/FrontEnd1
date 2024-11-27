@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useSelector } from 'react-redux';
 import { addItemToCart, CartCount } from '../../../redux/slices/cartslice';
@@ -130,7 +130,7 @@ export default function Product({ shopItems = {} }) {
                 <button
                   onClick={addToCart}
                   className="flex-1 px-4 py-2 bg-[#0f3460] text-white rounded-lg hover:bg-[#072344] transition-all duration-200 flex items-center justify-center"
-                  title="Add to cart"
+                  title="Thêm giỏ hàng"
                 >
                   <FontAwesomeIcon icon={faCartPlus} className="w-6 h-6" />
                 </button>
@@ -141,9 +141,7 @@ export default function Product({ shopItems = {} }) {
                 >
                   <FontAwesomeIcon icon={faMoneyBillWave} className="w-6 h-6" />
                 </button>
-
               </div>
-
             </div>
           </div>
         </div>
