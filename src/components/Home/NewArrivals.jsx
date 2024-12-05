@@ -50,13 +50,14 @@ const NewArrivals = () => {
         ) : (
           <Slider {...settings}>
             {shopItems.length > 0 ? (
-              shopItems.map((item) => {
-                return <Product key={item.id} shopItems={item} />;
-              })
+              shopItems.map((item, index) => (
+                <Product key={item.id || index} shopItems={item} />
+              ))
             ) : (
               <div>Không có sản phẩm mới nào.</div>
             )}
           </Slider>
+
         )}
       </div>
     </section>

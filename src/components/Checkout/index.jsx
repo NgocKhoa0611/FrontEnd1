@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { clearSelectedItems } from '../../../redux/slices/orderslice'; // Adjust the path based on your folder structure
+// import { clearSelectedItems } from '../../../redux/slices/orderslice'; // Adjust the path based on your folder structure
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './index.css';
@@ -9,8 +9,7 @@ const Checkout = () => {
   const dispatch = useDispatch();
   const [errorMessage, setErrorMessage] = useState("");
   const cartItems = useSelector((state) => state.order.selectedItems);
-  const totalAmount = useSelector((state) => state.order.totalAmount);
-
+  const totalPrice = useSelector((state) => state.order.totalPrice);
   const [formData, setFormData] = useState({
     email: '',
     fullName: '',
@@ -18,10 +17,45 @@ const Checkout = () => {
     address: '',
     city: '',
     notes: '',
-    paymentMethod: 'bankTransfer',
+    paymentMethod: 'cash',
   });
 
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [user, setUser] = useState(null);
+  const shippingFee = 0, total = totalPrice + shippingFee
+
+  useEffect(() => {
+    // Fetch user data from the API
+    const fetchUserData = async () => {
+      try {
+        const token = document.cookie
+          .split("; ")
+          .find(row => row.startsWith("token="))
+          ?.split("=")[1];
+
+        if (!token) return;
+
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userId = payload.id;
+
+        const response = await axios.get(`http://localhost:8000/user/${userId}`, { withCredentials: true }); // Adjust the API endpoint
+        setUser(response.data);
+        setFormData({
+          ...formData,
+          email: response.data.email,
+          fullName: response.data.name,
+          phoneNumber: response.data.phone,
+          address: response.data.address || '',
+          city: response.data.city || '',
+        });
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setErrorMessage('Không thể lấy thông tin người dùng.');
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   useEffect(() => {
     if (orderSuccess) {
@@ -32,9 +66,12 @@ const Checkout = () => {
     }
   }, [orderSuccess]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleChange = (event) => {
+    const { value } = event.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      paymentMethod: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -43,7 +80,7 @@ const Checkout = () => {
     try {
       // Cấu trúc dữ liệu gửi đến API
       const orderData = {
-        total_price: cartItems.reduce((total, item) => total + item.product.price * item.quantity, 0),
+        total_price: cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
         payment_method: formData.paymentMethod,
         order_status: 'Chờ xử lý', // Default status
         order_details: cartItems.map((item) => ({
@@ -55,9 +92,9 @@ const Checkout = () => {
       };
 
       // Gửi yêu cầu POST đến API
-      const response = await axios.post('http://localhost:8000/orders', orderData,
-        { withCredentials: true },
-      );
+      const response = await axios.post('http://localhost:8000/orders', orderData, {
+        withCredentials: true,
+      });
 
       console.log('Order Response:', response.data);
 
@@ -72,7 +109,7 @@ const Checkout = () => {
         city: '',
         notes: '',
         paymentMethod: 'Tiền mặt',
-        payment_date: ''
+        payment_date: '',
       });
 
       dispatch(clearSelectedItems());
@@ -89,9 +126,6 @@ const Checkout = () => {
     }).format(amount);
   };
 
-  const subtotal = totalAmount;
-  const shippingFee = 0; // Adjust this value as needed
-  const total = subtotal + shippingFee;
 
   return (
     <div className="checkout-page">
@@ -151,7 +185,7 @@ const Checkout = () => {
                 className="form-input"
               />
             </div>
-          
+
             <div className="form-group">
               <textarea
                 name="notes"
@@ -171,24 +205,24 @@ const Checkout = () => {
               <div className="payment-option">
                 <input
                   type="radio"
+                  id="cash"
+                  name="paymentMethod"
+                  value="cash"
+                  checked={formData.paymentMethod === 'cash'}
+                  onChange={handleChange}
+                />
+                <label htmlFor="cashOnDelivery">Thanh toán khi giao hàng (COD)</label>
+              </div>
+              <div className="payment-option">
+                <input
+                  type="radio"
                   id="bankTransfer"
                   name="paymentMethod"
                   value="bankTransfer"
                   checked={formData.paymentMethod === 'bankTransfer'}
                   onChange={handleChange}
                 />
-                <label htmlFor="bankTransfer">Chuyển khoản qua ngân hàng</label>
-              </div>
-              <div className="payment-option">
-                <input
-                  type="radio"
-                  id="cashOnDelivery"
-                  name="paymentMethod"
-                  value="cashOnDelivery"
-                  checked={formData.paymentMethod === 'cashOnDelivery'}
-                  onChange={handleChange}
-                />
-                <label htmlFor="cashOnDelivery">Thanh toán khi giao hàng (COD)</label>
+                <label htmlFor="bankTransfer">Thanh toán thẻ ATM</label>
               </div>
             </div>
           </div>
@@ -197,26 +231,28 @@ const Checkout = () => {
           <div className="order-summary">
             <h2>Đơn hàng</h2>
             <ul className="cart-items-list">
-              {cartItems.map((item, index) => (
-                <li key={index} className="cart-item">
-                  <img src={`http://localhost:8000/img/${item.ProductDetail.productImage.img_url}`} alt={item.product.product_name} className="item-image" />
+              {cartItems.map((item) => (
+                <li key={item.product_detail_id} className="cart-item">
+                  <img
+                    src={`http://localhost:8000/img/${item.img_url}`}
+                    alt={item.product_name}
+                    className="item-image"
+                  />
                   <div className="item-details">
-                    <span className="item-name">{item.product.product_name}</span>
+                    <span className="item-name">{item.product_name}</span>
                   </div>
                   <span className="item-price">
                     {formatCurrency(item.price)} x {item.quantity}
                   </span>
-                  {/* <span className="item-total">
-                    {formatCurrency(item.price * item.quantity)}
-                  </span> */}
                 </li>
-              ))}
+              ))
+              }
             </ul>
 
             <div className="price-breakdown">
               <div className="price-row">
                 <span>Tạm tính</span>
-                <span className="price-right">{formatCurrency(subtotal)}</span>
+                <span className="price-right">{formatCurrency(totalPrice)}</span>
               </div>
               <div className="price-row">
                 <span>Phí vận chuyển</span>

@@ -4,17 +4,13 @@ import logo from "../../assets/images/logo.png";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useSelector } from 'react-redux';
-import { CartCount, SetCartItems } from '../../../redux/slices/cartslice';
-import { persistor } from '../../../redux/store'; //
+import { setCartItems } from '../../../redux/slices/cartslice';
 
 const Search = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [user, setUser] = useState(null);
   const dispatch = useDispatch();
-  const cartCount = useSelector((state) => state.cart.cartCount);
-  console.log('cartcount', cartCount);
-
 
   useEffect(() => {
     const token = document.cookie
@@ -25,35 +21,26 @@ const Search = () => {
     if (token) {
       setIsLoggedIn(true);
       fetchUser();
-      fetchCartCount();
+      getCart();
     } else {
-      persistor.purge();
-      dispatch(CartCount(0));
       setIsLoggedIn(false);
-      console.log("No token found. Skipping fetchCartCount.");
     }
   }, []);
 
-  const fetchCartCount = async () => {
-    const token = document.cookie
-      .split("; ")
-      .find(row => row.startsWith("token="))
-      ?.split("=")[1];
-    if (!token) {
-      console.log("No token found. Fetching cart count skipped.");
-      return;
-    }
+  const getCart = async () => {
     try {
-      const response = await axios.get("http://localhost:8000/cart/count", {
+      const response = await axios.get('http://localhost:8000/cart', {
         withCredentials: true,
       });
-      const count = response.data.count;
-      dispatch(CartCount(count));
-    } catch (error) {
-      console.error("Error fetching cart count:", error);
+      console.log('Cart items:', response.data);
+      dispatch(setCartItems(response.data))
+    }
+    catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
+      console.error('Error fetching cart:', errorMessage);
+
     }
   };
-
   const fetchUser = async () => {
     try {
       const token = document.cookie
@@ -77,6 +64,10 @@ const Search = () => {
       console.error("Error fetching user:", error);
     }
   };
+
+  const cartDetail = useSelector((state) => state.cart.items?.cart?.cartDetail);
+  const itemCount = cartDetail ? cartDetail.length : 0;
+  console.log(itemCount);
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
@@ -107,9 +98,8 @@ const Search = () => {
         </Link>
 
         <div className="search-box f_flex">
+          <input type="text" placeholder="Tìm kiếm sản phẩm" />
           <i className="fa fa-search"></i>
-          <input type="text" placeholder="Search and hit enter..." />
-          <span>Tìm kiếm</span>
         </div>
 
         <div className="icon f_flex width">
@@ -158,9 +148,9 @@ const Search = () => {
           <div className="cart relative">
             <Link to="/cart">
               <i className="fa fa-shopping-bag icon-circle"></i>
-              {cartCount > 0 && (
+              {itemCount > 0 && (
                 <span className="cart-count absolute -top-2 -right-2 bg-red-500 text-white text-xs text-center rounded-full px-2">
-                  {cartCount}
+                  {itemCount}
                 </span>
               )}
             </Link>

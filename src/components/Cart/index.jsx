@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import { updateItemQuantity, CartCount, removeItemFromCart } from '../../../redux/slices/cartslice';
+import { updateItemQuantity, removeItemFromCart } from '../../../redux/slices/cartslice';
 import { setSelectedItems } from '../../../redux/slices/orderslice';
 import { } from '../../../redux/slices/cartslice';
 import { useSelector } from 'react-redux';
@@ -13,7 +13,7 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const currentCartCount = useSelector((state) => state.cart.cartCount || 0);
+  const totalPrice = useSelector((state) => state.order.totalPrice);
 
   useEffect(() => {
     const getCart = async () => {
@@ -33,17 +33,12 @@ const Cart = () => {
     getCart();
   }, []);
 
-  useEffect(() => {
-    const { subtotal, voucher, total } = calculateTotal();
-    console.log('Updated totals:', { subtotal, voucher, total });
-  }, [selectedProducts]);
-
-
   const handleCheckboxChange = (cartDetail) => {
     setSelectedProducts((prevSelected) => {
       const isAlreadySelected = prevSelected.some(
         (product) => product.cart_detail_id === cartDetail.cart_detail_id
       );
+      console.log('ProductDetail:', cartDetail.ProductDetail);
 
       const updatedSelectedProducts = isAlreadySelected
         ? prevSelected.filter(
@@ -52,214 +47,103 @@ const Cart = () => {
         : [
           ...prevSelected,
           {
-            ...cartDetail,
-            ...cartDetail.ProductDetail,
-            ...cartDetail.ProductDetail.product,
+            cart_detail_id: cartDetail.cart_detail_id,
+            product_detail_id: cartDetail.product_detail_id,
+            product_name: cartDetail.ProductDetail?.product?.product_name || '',
+            price: cartDetail.ProductDetail?.product?.price || 0,
+            quantity: cartDetail.quantity || 1,
+            size: cartDetail.ProductDetail?.size?.size_name,
+            color: cartDetail.ProductDetail?.color?.color_name,
+            img_url: cartDetail.ProductDetail?.productImage?.img_url || '',
           },
         ];
 
-      const subtotal = updatedSelectedProducts.reduce(
-        (acc, item) => acc + (item.price || 0) * (item.quantity || 1),
-        0
-      );
-
-      const voucher = 0;
-      const totalAmount = subtotal + voucher;
-
       // Cập nhật Redux store
+      console.log(updatedSelectedProducts);
+
       dispatch(
-        setSelectedItems({
-          selectedItems: updatedSelectedProducts,
-          totalAmount,
-        })
+        setSelectedItems(updatedSelectedProducts)
       );
 
       return updatedSelectedProducts;
     });
   };
 
-  const calculateTotal = () => {
-    if (!selectedProducts || selectedProducts.length === 0) return { subtotal: 0, voucher: 0, total: 0 };
-
-    const subtotal = selectedProducts.reduce((acc, productDetail) => {
-      return acc + (productDetail.price || 0) * (productDetail.quantity || 1); // Assuming quantity is available
-    }, 0);
-
-    const voucher = 0; // Update this with voucher logic if needed
-    return { subtotal, voucher, total: subtotal + voucher };
-  };
-
-  const { subtotal, voucher, total } = calculateTotal();
-
   const handleIncrease = async (product_detail_id) => {
     try {
       const response = await axios.put(
-        "http://localhost:8000/cart/increase",
+        'http://localhost:8000/cart/increase',
         { product_detail_id },
         { withCredentials: true }
       );
 
-      if (response.data.cartDetail) {
-        const updatedQuantity = response.data.cartDetail.quantity;
+      if (response.data.success) {
+        const updatedCart = cart.cartDetail.map((item) => {
+          if (item.ProductDetail.product_detail_id === product_detail_id) {
+            item.quantity += 1;
+          }
+          return item;
+        });
 
-        // Lấy số lượng hiện tại từ cart state hoặc Redux store
-        const existingItem = cart.cartDetail.find(item => item.product_detail_id === product_detail_id);
-        const existingItemQuantity = existingItem ? existingItem.quantity : 0;
+        setCart({ cartDetail: updatedCart });
 
-        // Tính chênh lệch
-        const quantityDifference = updatedQuantity - existingItemQuantity;
-
-        // Dispatch cập nhật số lượng cho Redux store
-        dispatch(updateItemQuantity({
-          product_detail_id: response.data.cartDetail.product_detail_id,
-          quantity: updatedQuantity,
-        }));
-
-        // Cập nhật tổng số lượng sản phẩm
-        dispatch(CartCount(currentCartCount + quantityDifference));
-
-        // Cập nhật giỏ hàng trong component state
-        setCart((prevCart) => ({
-          ...prevCart,
-          cartDetail: prevCart.cartDetail.map(item =>
-            item.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? { ...item, quantity: updatedQuantity }
-              : item
-          ),
-        }));
-
-        // Đồng bộ danh sách sản phẩm đã chọn
         setSelectedProducts((prevSelected) =>
-          prevSelected.map(product =>
-            product.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? { ...product, quantity: updatedQuantity }
+          prevSelected.map((product) =>
+            product.product_detail_id === product_detail_id
+              ? { ...product, quantity: product.quantity + 1 }
               : product
           )
         );
+
+        const updatedSelectedProducts = selectedProducts.map((product) =>
+          product.product_detail_id === product_detail_id
+            ? { ...product, quantity: product.quantity + 1 }
+            : product
+        );
+
+        dispatch(setSelectedItems(updatedSelectedProducts));
       }
     } catch (error) {
-      console.error("Error increasing quantity:", error.response?.data || error.message);
-      alert("Không thể tăng số lượng sản phẩm.");
+      console.error('Error increasing quantity:', error.message || error);
     }
   };
 
   const handleDecrease = async (product_detail_id) => {
     try {
       const response = await axios.put(
-        "http://localhost:8000/cart/decrease",
+        'http://localhost:8000/cart/decrease',
         { product_detail_id },
         { withCredentials: true }
       );
 
-      if (response.data.cartDetail) {
-        const updatedQuantity = response.data.cartDetail.quantity;
-
-        // Lấy số lượng hiện tại của sản phẩm trong giỏ
-        const existingItem = cart.cartDetail.find(item => item.product_detail_id === product_detail_id);
-        const existingItemQuantity = existingItem ? existingItem.quantity : 0;
-
-        // Tính chênh lệch
-        const quantityDifference = updatedQuantity - existingItemQuantity;
-
-        // Dispatch cập nhật số lượng cho Redux store
-        dispatch(updateItemQuantity({
-          product_detail_id: response.data.cartDetail.product_detail_id,
-          quantity: updatedQuantity,
-        }));
-
-        // Cập nhật tổng số lượng sản phẩm
-        dispatch(CartCount(currentCartCount + quantityDifference));
-
-        // Cập nhật giỏ hàng trong component state
-        setCart((prevCart) => ({
-          ...prevCart,
-          cartDetail: prevCart.cartDetail.map(item =>
-            item.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? { ...item, quantity: updatedQuantity }
-              : item
-          ),
-        }));
-
-        // Đồng bộ danh sách sản phẩm đã chọn
-        setSelectedProducts((prevSelected) =>
-          prevSelected.map(product =>
-            product.cart_detail_id === response.data.cartDetail.cart_detail_id
-              ? { ...product, quantity: updatedQuantity }
-              : product
-          )
-        );
-      }
-    } catch (error) {
-      console.error("Error decreasing quantity:", error.response?.data || error.message);
-      alert("Không thể giảm số lượng sản phẩm.");
-    }
-  };
-
-  const handleRemove = async (product_detail_id) => {
-    // Confirm the deletion with the user first
-    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?");
-    if (!confirmDelete) {
-      return; // If the user cancels, exit the function
-    }
-
-    try {
-      console.log('Removing product with ID:', product_detail_id);
-
-      const response = await axios.delete(`http://localhost:8000/cart/${product_detail_id}`, {
-        withCredentials: true
+      const updatedCart = cart.cartDetail.map((item) => {
+        if (item.ProductDetail.product_detail_id === productDetailId && item.quantity > 1) {
+          item.quantity -= 1;
+          setSelectedProducts((prevSelected) =>
+            prevSelected.map((product) =>
+              product.product_detail_id === productDetailId
+                ? { ...product, quantity: product.quantity - 1 }
+                : product
+            )
+          );
+        }
+        return item;
       });
 
-      if (response.status === 200) {
-        dispatch(removeItemFromCart(product_detail_id));
-        const updatedCartResponse = await axios.get('http://localhost:8000/cart', {
-          withCredentials: true
-        });
+      setCart({ cartDetail: updatedCart });
 
-        setCart(updatedCartResponse.data.cart);
+      const updatedSelectedProducts = selectedProducts.map((product) =>
+        product.product_detail_id === productDetailId
+          ? { ...product, quantity: product.quantity - 1 }
+          : product
+      );
 
-        const updatedCartCount = cart.cartDetail.reduce(
-          (total, item) =>
-            total +
-            (item.ProductDetail.product_detail_id === product_detail_id
-              ? 0 // Bỏ sản phẩm vừa xóa
-              : item.quantity),
-          0
-        );
-        dispatch(CartCount(updatedCartCount));
+      dispatch(setSelectedItems(updatedSelectedProducts));
 
-        alert("Sản phẩm đã được xóa khỏi giỏ hàng!");
-      } else {
-        console.warn('Unexpected response:', response.data);
-        alert("Đã xảy ra lỗi khi xóa sản phẩm. Vui lòng thử lại.");
-      }
     } catch (error) {
-      console.error("Error removing product from cart:", error.response?.data || error.message);
-
-      if (error.response) {
-        const errorMessage = error.response.data?.message || "Không thể xóa sản phẩm.";
-        alert(errorMessage);
-      } else {
-        alert("Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.");
-      }
+      console.error('Error decreasing quantity:', error.message || error);
     }
   };
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  if (!cart || !cart.cartDetail || cart.cartDetail.length === 0) {
-    return (
-      <div className="flex justify-center items-center flex-col py-12">
-        <img
-          src="../../../public/shopping.png"
-          alt="Empty Cart"
-          className="w-64 h-64 mb-6" // Adjusted size to w-64 h-64
-        />
-        <p className="text-xl text-gray-700">Giỏ hàng của bạn chưa có sản phẩm nào.</p>
-      </div>
-    );
-
-  }
 
 
   if (loading) {
@@ -296,11 +180,10 @@ const Cart = () => {
                           className="form-checkbox h-5 w-5 text-blue-600"
                         />
                       </td>
-
-                      <td className="py-4">
+                      <td className="py-4 w-96">
                         <div className="flex items-center">
                           <img
-                            className="h-24 w-24 rounded-md mr-4 border"
+                            className="w-24 h-24 rounded-md mr-4 border"
                             src={`http://localhost:8000/img/${item.ProductDetail.productImage?.img_url}`}
                             alt={item.ProductDetail.product.product_name}
                           />
@@ -348,19 +231,22 @@ const Cart = () => {
               <h2 className="text-xl font-semibold mb-4 text-gray-700">Chi tiết thanh toán</h2>
               <div className="flex justify-between mb-2 text-gray-600">
                 <span>Tạm tính</span>
-                <span>{subtotal.toLocaleString()}₫</span>
+                <span>{totalPrice.toLocaleString()}₫</span>
               </div>
               <div className="flex justify-between mb-2 text-gray-600">
                 <span>Voucher</span>
-                <span>{voucher.toLocaleString()}₫</span>
+                <span>{totalPrice.toLocaleString()}₫</span>
               </div>
               <hr className="my-4 border-gray-200" />
               <div className="flex justify-between text-lg font-semibold text-gray-700">
                 <span>Tổng cộng</span>
-                <span>{total.toLocaleString()}₫</span>
+                <span>{totalPrice.toLocaleString()}₫</span>
               </div>
               <button
-                onClick={() => navigate('/checkout')}
+                onClick={() => {
+                  navigate('/checkout');
+                }}
+
                 className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg mt-6 w-full hover:bg-blue-600 transition"
               >
                 Thanh toán
