@@ -39,12 +39,8 @@ const Account = () => {
       });
 
       setUser(response.data);
-      setFormData({
-        name: response.data.name || "",
-        email: response.data.email || "",
-        phone: response.data.phone || "",
-        address: response.data.address || "",
-      });
+      console.log(response.data);
+
       setFormData({
         name: response.data.name || "",
         email: response.data.email || "",
@@ -122,7 +118,7 @@ const Account = () => {
               />
               <label htmlFor="avatar-upload">
                 <img
-                  src={`/path/to/avatars/${user?.avatar || "default-avatar.jpg"}`}
+                  src={user ? `http://localhost:8000/avatar/${user.avatar || "default-avatar.jpg"}` : "http://localhost:8000/avatar/default-avatar.jpg"}
                   alt="Avatar"
                   className="w-24 h-24 rounded-full shadow-lg mb-4 cursor-pointer"
                 />

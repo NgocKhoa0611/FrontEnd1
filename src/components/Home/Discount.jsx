@@ -51,9 +51,9 @@ const Discount = () => {
         ) : (
           <Slider {...settings}>
             {discountedProducts.length > 0 ? (
-              discountedProducts.map((item) => {
-                return <Product key={item.id} shopItems={item} />;
-              })
+              discountedProducts.map((item, index) => (
+                <Product key={item.id || index} shopItems={item} />
+              ))
             ) : (
               <div>Không có sản phẩm giảm giá nào.</div>
             )}

@@ -12,7 +12,7 @@ import Contact from "./pages/Contact.jsx";
 import Category from "./pages/Category.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Account from "./pages/account.jsx";
-
+import CategoryParent from "./components/Category/parentID.jsx";
 
 function App() {
   return (
@@ -26,6 +26,7 @@ function App() {
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/category/:id" element={<Category />} />
+        <Route path="category/parent/:id" element={<CategoryParent />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/products" element={<Products />} />
         <Route path="/account" element={<Account />} />

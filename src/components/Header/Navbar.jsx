@@ -62,8 +62,8 @@ const Navbar = () => {
               <li className="relative group m-0 block min-w-[90px] text-center cursor-pointer">
                 <Link to="/products">Sản phẩm</Link>
                 <ul className="absolute top-12 left-0 mt-2 overflow-hidden hidden group-hover:block bg-white shadow-lg rounded-lg min-w-[150px]">
-                  {products.map((product) => (
-                    <li key={product.id} className="m-0">
+                  {products.map((product, index) => (
+                    <li key={product.id || index} className="m-0">
                       <Link
                         to={`/products/${product.id}`}
                         className="whitespace-nowrap text-left w-full block px-4 hover:bg-gray-200"
@@ -79,7 +79,7 @@ const Navbar = () => {
                   key={parentId}
                   className="relative group m-0 block min-w-[90px] text-center cursor-pointer"
                 >
-                  <Link className="min-w-[50px]">
+                  <Link to={`/category/parent/${parentId}`} className="min-w-[50px]">
                     {parentId === "1"
                       ? "Áo"
                       : parentId === "2"

@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     selectedItems: [],
-    totalAmount: 0,
+    totalPrice: 0
 };
 
 const orderSlice = createSlice({
@@ -10,21 +10,12 @@ const orderSlice = createSlice({
     initialState,
     reducers: {
         setSelectedItems: (state, action) => {
-            const { selectedItems, totalAmount } = action.payload;
-
-            state.selectedItems = Array.isArray(selectedItems) ? selectedItems : [];
-            state.totalAmount = totalAmount || 0;
-        },
-        clearSelectedItems: (state) => {
-            state.selectedItems = state.selectedItems.filter(
-                (item) => !state.selectedItems.includes(item.product_detail_id)
-            );
-            state.selectedItems = [];
-            state.totalAmount = 0;
+            state.selectedItems = action.payload;
+            state.totalPrice = action.payload.reduce((total, item) => total + item.price * item.quantity, 0)
         },
     },
 });
 
-export const { setSelectedItems, clearSelectedItems } = orderSlice.actions;
+export const { setSelectedItems } = orderSlice.actions;
 
 export default orderSlice;
