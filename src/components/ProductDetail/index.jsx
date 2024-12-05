@@ -16,22 +16,33 @@ const ProductDetails = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [reviews, setReviews] = useState([]);  // State để lưu bình luận
   const dispatch = useDispatch();
 
   useEffect(() => {
-    axios
-      .get(`${API_URL}/product/${id}`)
-      .then((response) => {
-        console.log("Product fetched:", response.data);
-        setProduct(response.data);
-        setSelectedColor(response.data.detail[0]?.color?.color_name || "");
-        setSelectedSize(response.data.detail[0]?.size?.size_name || "");
+    // Lấy thông tin sản phẩm từ API
+    fetch(`${API_URL}/product/${id}`)
+      .then(response => response.json())
+      .then(data => {
+        setProduct(data);
+        setSelectedColor(data.detail[0]?.color?.color_name || "");
+        setSelectedSize(data.detail[0]?.size?.size_name || "");
       })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
+      .catch(error => {
+        console.error("Error fetching product:", error);
       })
       .finally(() => {
         setLoading(false);
+      });
+
+    // Lấy bình luận của sản phẩm
+    fetch(`${API_URL}/review`)  // API lấy bình luận
+      .then(response => response.json())
+      .then(data => {
+        setReviews(data);  // Lưu bình luận vào state
+      })
+      .catch(error => {
+        console.error("Error fetching reviews:", error);
       });
   }, [id]);
 
@@ -318,11 +329,11 @@ const ProductDetails = () => {
       </div>
 
       {/* Comments Section */}
-      <div className="content-cmt mt-10 px-5">
-        <h3 className="text-xl font-semibold">Bình luận</h3>
+      <div className="comments-section mt-5">
+        <h3>Bình luận</h3>
         <div className="comment-form mt-5">
           <textarea
-            placeholder="Thêm bình luận..."
+            placeholder="Viết bình luận..."
             className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           ></textarea>
           <button className="mt-3 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none">
@@ -331,18 +342,21 @@ const ProductDetails = () => {
         </div>
 
         <div className="comments-list mt-5">
-          {product.comments && product.comments.length > 0 ? (
-            product.comments.map((comment, index) => (
-              <div key={index} className="comment-item mb-6">
+          {reviews.length > 0 ? (
+            reviews.map((review, index) => (
+              <div key={review.review_id} className="comment-item mb-6">
                 <div className="comment-header flex items-center mb-3">
                   <img
-                    src={comment.user.avatar || "https://via.placeholder.com/40"}
+                    src="https://via.placeholder.com/40"
                     alt="User Avatar"
                     className="w-10 h-10 rounded-full object-cover mr-3"
                   />
-                  <p className="font-semibold">{comment.user.name}</p>
+                  <p className="font-semibold">{`User ${review.user_id}`}</p>
+                  <span className="text-gray-500 text-sm ml-2">
+                    {new Date(review.date).toLocaleString()}
+                  </span>
                 </div>
-                <p className="comment-text">{comment.comment}</p>
+                <p className="comment-text">{review.content}</p>
               </div>
             ))
           ) : (
