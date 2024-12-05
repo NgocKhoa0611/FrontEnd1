@@ -240,13 +240,16 @@ const Checkout = () => {
                   />
                   <div className="item-details">
                     <span className="item-name">{item.product_name}</span>
+                    <div className="item-options">
+                      <span>Size: {item.size}</span><br />
+                      <span>Màu: {item.color}</span>
+                    </div>
                   </div>
                   <span className="item-price">
                     {formatCurrency(item.price)} x {item.quantity}
                   </span>
                 </li>
-              ))
-              }
+              ))}
             </ul>
 
             <div className="price-breakdown">
@@ -273,6 +276,7 @@ const Checkout = () => {
               </button>
             </div>
           </div>
+
         </form>
       </div>
     </div>

@@ -121,6 +121,11 @@
   .item-price {
     color: #aaa;
   }
+
+  .item-options {
+    font-size: 14px;
+    color: #555;
+  }
   
   .discount-section {
     margin: 20px;

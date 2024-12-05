@@ -236,33 +236,6 @@ const Account = () => {
                     )}
                   </tbody>
                 </table>
-                <div id="order-history" className="space-y-6">
-                  <h2 className="text-xl font-bold text-gray-800">Lịch sử đơn hàng</h2>
-                  <table className="w-full table-auto">
-                    <thead>
-                      <tr className="text-left">
-                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">ID Đơn Hàng</th>
-                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">Ngày Đặt</th>
-                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">Trạng Thái</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orders.length > 0 ? (
-                        orders.map(order => (
-                          <tr key={order.id} className="border-b">
-                            <td className="px-4 py-2">{order.id}</td>
-                            <td className="px-4 py-2">{order.date}</td>
-                            <td className="px-4 py-2">{order.status}</td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="3" className="text-center py-4">Không có đơn hàng nào.</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
               </div>
             )}
           </div>

@@ -13,6 +13,7 @@ const ProductDetails = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true); // Loading state to display loading spinner
   const [product, setProduct] = useState({});
+  const [selectedDetailId, setSelectedDetailId] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
@@ -24,8 +25,6 @@ const ProductDetails = () => {
       .then((response) => {
         console.log("Product fetched:", response.data);
         setProduct(response.data);
-        setSelectedColor(response.data.detail[0]?.color?.color_name || "");
-        setSelectedSize(response.data.detail[0]?.size?.size_name || "");
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -35,75 +34,25 @@ const ProductDetails = () => {
       });
   }, [id]);
 
-  // const addToCartHandler = async () => {
-  //   if (!product.product_name) {
-  //     alert("Dữ liệu sản phẩm chưa được tải đầy đủ.");
-  //     return;
-  //   }
-  //   const selectedDetail = product.detail.find(
-  //     (detail) =>
-  //       detail.size.size_name === selectedSize &&
-  //       detail.color.color_name === selectedColor
-  //   );
+  const handleDetailSelect = (detailId) => {
+    setSelectedDetailId(detailId);
+    const selectedDetail = product.detail.find(
+      (detail) => detail.product_detail_id === detailId
+    );
+    setSelectedColor(selectedDetail?.color?.color_name || "");
+    setSelectedSize(selectedDetail?.size?.size_name || "");
+  };
 
-  //   if (!selectedDetail) {
-  //     alert("Vui lòng chọn kích thước và màu sắc trước khi thêm vào giỏ hàng.");
-  //     return;
-  //   }
-
-  //   const newItem = {
-  //     product_detail_id: selectedDetail.product_detail_id,
-  //     quantity,
-  //   };
-  //   console.log("Payload gửi lên API:", newItem);
-
-  //   try {
-  //     const token = document.cookie
-  //       .split('; ')
-  //       .find((cookie) => cookie.startsWith('token='))
-  //       ?.split('=')[1];
-
-  //     if (!token) {
-  //       alert("Bạn cần phải đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
-  //       navigate("/login");
-  //       return;
-  //     }
-
-  //     const response = await axios.post(
-  //       "http://localhost:8000/cart/add",
-  //       { newItem },
-  //       { withCredentials: true }
-  //     );
-
-  //     if (response.status === 200) {
-  //       const cartItem = {
-  //         product_detail_id: response.data.product_detail_id,
-  //         product_name: product.product_name,
-  //         img_url: selectedDetail.productImage.img_url,
-  //         size: selectedSize,
-  //         color: selectedColor,
-  //         price: product.price,
-  //         quantity: newItem.quantity,
-  //       };
-
-  //       const newCartCount = currentCartCount + newItem.quantity;
-
-  //       dispatch(addItemToCart(cartItem));
-  //       dispatch(CartCount(newCartCount));
-
-  //       toast.success("Thêm sản phẩm vào giỏ hàng thành công!"); // Use toast.success for success message
-  //     } else {
-  //       alert(response.data.message || "Không thể thêm sản phẩm vào giỏ hàng.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Lỗi khi thêm sản phẩm vào giỏ hàng:", error);
-  //     alert("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.");
-  //   }
-  // };
+  const incrementQuantity = () => setQuantity(quantity + 1);
+  const decrementQuantity = () => {
+    if (quantity > 1) setQuantity(quantity - 1);
+  };
 
   const addToCart = async () => {
-    console.log('Product ID', product.product_id);
-    const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
+    const token = document.cookie
+      .split(";")
+      .find((cookie) => cookie.trim().startsWith("token="));
+
     if (!token) {
       alert("Bạn cần phải đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
       navigate("/login");
@@ -111,60 +60,47 @@ const ProductDetails = () => {
     }
 
     const selectedDetail = product.detail.find(
-      (detail) =>
-        detail.size.size_name === selectedSize &&
-        detail.color.color_name === selectedColor
+      (detail) => detail.product_detail_id === selectedDetailId
     );
 
+    // Kiểm tra nếu `selectedDetailId` không hợp lệ
     if (!selectedDetail) {
-      alert("Vui lòng chọn kích thước và màu sắc trước khi thêm vào giỏ hàng.");
+      alert("Vui lòng chọn một chi tiết sản phẩm trước khi thêm vào giỏ hàng.");
       return;
     }
 
     try {
-      const productDetailResponse = await axios.get(`http://localhost:8000/product/${product.product_id}`, {
-        withCredentials: true,
-      });
-
-
-      const productDetail = productDetailResponse.data.detail[0];
-      const productData = productDetailResponse.data
+      // Gửi yêu cầu thêm vào giỏ hàng
       const newItem = {
-        product_detail_id: productDetail.product_detail_id,
-        quantity: 1,
-        size: selectedSize,
-        color: selectedColor,
-        img_url: productDetail.productImage.img_url,
-        price: productData.price,
-        name: productData.product_name
+        product_detail_id: selectedDetail.product_detail_id,
+        quantity,
+        size: selectedDetail.size.size_name,
+        color: selectedDetail.color.color_name,
+        img_url: selectedDetail.productImage.img_url,
+        price: product.price,
+        name: product.product_name,
       };
-      console.log('newItem', newItem);
 
-      if (productDetail?.is_primary !== true) {
-        alert("Sản phẩm này không phải là sản phẩm chính. Không thể thêm vào giỏ hàng.");
-        return;
-      }
+      console.log("newItem", newItem);
 
-      const response = await axios.post('http://localhost:8000/cart/add', {
-        newItem,
-      }, {
-        withCredentials: true,
-      });
-      dispatch(addCartDetail(newItem))
+      // Gửi yêu cầu POST tới API để thêm vào giỏ hàng
+      const response = await axios.post(
+        "http://localhost:8000/cart/add",
+        { newItem },
+        { withCredentials: true }
+      );
+
+      // Cập nhật Redux store nếu thêm thành công
       if (response.status === 200) {
-        alert(`${productData.product_name} đã thêm vào giỏ hàng`);
+        dispatch(addCartDetail(newItem));
+        alert(`${product.product_name} đã được thêm vào giỏ hàng.`);
       }
     } catch (error) {
-      console.error('Error adding to cart:', error);
+      console.error("Error adding to cart:", error);
+      alert("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.");
     }
   };
 
-  const handleSizeSelect = (size) => setSelectedSize(size);
-  const handleColorSelect = (color) => setSelectedColor(color);
-  const incrementQuantity = () => setQuantity(quantity + 1);
-  const decrementQuantity = () => {
-    if (quantity > 1) setQuantity(quantity - 1);
-  };
 
   const handleBuyNow = async () => {
     const selectedDetail = product.detail.find(
@@ -245,42 +181,28 @@ const ProductDetails = () => {
             }).format(product.price)}
           </p>
 
-          <div className="options">
-            <div className="size-selection">
-              <h4>Kích thước:</h4>
+          <div className="options pb-4">
+            <h4>Chọn Tùy Chọn:</h4>
+            <select
+              value={selectedDetailId}
+              onChange={(e) => handleDetailSelect(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
               {product.detail.map((detail) => (
-                <button
-                  key={detail.size.size_name}
-                  onClick={() => handleSizeSelect(detail.size.size_name)}
-                  className={`${selectedSize === detail.size.size_name
-                    ? "bg-blue-500 text-black"
-                    : "bg-gray-200 text-black"
-                    } p-2 m-1 rounded`}
+                <option
+                  key={detail.product_detail_id}
+                  value={detail.product_detail_id}
                 >
-                  {detail.size.size_name}
-                </button>
+                  {`Màu ${detail.color.color_name} - Size ${detail.size.size_name}`}
+                </option>
               ))}
-            </div>
-            <div className="color-selection">
-              <h4>Màu Sắc:</h4>
-              {product.detail.map((detail) => (
-                <button
-                  key={detail.color.color_id}
-                  onClick={() => handleColorSelect(detail.color.color_name)}
-                  className={`${selectedColor === detail.color.color_name
-                    ? "bg-blue-500 text-black"
-                    : "bg-gray-200 text-black"
-                    } p-2 m-1 rounded`}
-                >
-                  {detail.color.color_name}
-                </button>
-              ))}
-            </div>
+            </select>
           </div>
+
 
           <div className="buy-container">
             <h4>Số lượng:</h4>
-            <div className="buy-column">
+            <div className="buy-column pb-2">
               <div className="quantity-selector">
                 <button className="decrement" onClick={decrementQuantity}>
                   -

@@ -2,10 +2,12 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
-import { updateItemQuantity, removeItemFromCart } from '../../../redux/slices/cartslice';
+import { updateCartDetail, removeItemFromCart, setCartItems } from '../../../redux/slices/cartslice';
 import { setSelectedItems } from '../../../redux/slices/orderslice';
 import { } from '../../../redux/slices/cartslice';
 import { useSelector } from 'react-redux';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const Cart = () => {
   const [cart, setCart] = useState({ cartDetail: [] });
@@ -14,6 +16,12 @@ const Cart = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const totalPrice = useSelector((state) => state.order.totalPrice);
+  const voucher = 0;
+  const reduxSelectedProducts = useSelector((state) => state.order.selectedItems);
+
+  useEffect(() => {
+    setSelectedProducts(reduxSelectedProducts || []);
+  }, [reduxSelectedProducts]);
 
   useEffect(() => {
     const getCart = async () => {
@@ -69,6 +77,31 @@ const Cart = () => {
     });
   };
 
+  const handleSelectAll = () => {
+    // Kiểm tra nếu tất cả sản phẩm đã được chọn
+    const isAllSelected = cart.cartDetail.length > 0 &&
+      selectedProducts.length === cart.cartDetail.length;
+
+    const updatedSelectedProducts = isAllSelected
+      ? [] // Bỏ chọn tất cả
+      : cart.cartDetail.map((cartDetail) => ({
+        cart_detail_id: cartDetail.cart_detail_id,
+        product_detail_id: cartDetail.product_detail_id,
+        product_name: cartDetail.ProductDetail?.product?.product_name || '',
+        price: cartDetail.ProductDetail?.product?.price || 0,
+        quantity: cartDetail.quantity || 1,
+        size: cartDetail.ProductDetail?.size?.size_name || '',
+        color: cartDetail.ProductDetail?.color?.color_name || '',
+        img_url: cartDetail.ProductDetail?.productImage?.img_url || '',
+      }));
+
+    // Cập nhật state local
+    setSelectedProducts(updatedSelectedProducts);
+
+    // Cập nhật Redux store
+    dispatch(setSelectedItems(updatedSelectedProducts));
+  };
+
   const handleIncrease = async (product_detail_id) => {
     try {
       const response = await axios.put(
@@ -77,32 +110,30 @@ const Cart = () => {
         { withCredentials: true }
       );
 
-      if (response.data.success) {
-        const updatedCart = cart.cartDetail.map((item) => {
-          if (item.ProductDetail.product_detail_id === product_detail_id) {
-            item.quantity += 1;
-          }
-          return item;
-        });
+      const updatedCart = cart.cartDetail.map((item) => {
+        if (item.ProductDetail.product_detail_id === product_detail_id) {
+          item.quantity += 1;
+        }
+        return item;
+      });
 
-        setCart({ cartDetail: updatedCart });
+      setCart({ cartDetail: updatedCart });
 
-        setSelectedProducts((prevSelected) =>
-          prevSelected.map((product) =>
-            product.product_detail_id === product_detail_id
-              ? { ...product, quantity: product.quantity + 1 }
-              : product
-          )
-        );
-
-        const updatedSelectedProducts = selectedProducts.map((product) =>
+      setSelectedProducts((prevSelected) =>
+        prevSelected.map((product) =>
           product.product_detail_id === product_detail_id
             ? { ...product, quantity: product.quantity + 1 }
             : product
-        );
+        )
+      );
 
-        dispatch(setSelectedItems(updatedSelectedProducts));
-      }
+      const updatedSelectedProducts = selectedProducts.map((product) =>
+        product.product_detail_id === product_detail_id
+          ? { ...product, quantity: product.quantity + 1 }
+          : product
+      );
+
+      dispatch(setSelectedItems(updatedSelectedProducts));
     } catch (error) {
       console.error('Error increasing quantity:', error.message || error);
     }
@@ -117,11 +148,11 @@ const Cart = () => {
       );
 
       const updatedCart = cart.cartDetail.map((item) => {
-        if (item.ProductDetail.product_detail_id === productDetailId && item.quantity > 1) {
+        if (item.ProductDetail.product_detail_id === product_detail_id && item.quantity > 1) {
           item.quantity -= 1;
           setSelectedProducts((prevSelected) =>
             prevSelected.map((product) =>
-              product.product_detail_id === productDetailId
+              product.product_detail_id === product_detail_id
                 ? { ...product, quantity: product.quantity - 1 }
                 : product
             )
@@ -133,7 +164,7 @@ const Cart = () => {
       setCart({ cartDetail: updatedCart });
 
       const updatedSelectedProducts = selectedProducts.map((product) =>
-        product.product_detail_id === productDetailId
+        product.product_detail_id === product_detail_id
           ? { ...product, quantity: product.quantity - 1 }
           : product
       );
@@ -145,6 +176,39 @@ const Cart = () => {
     }
   };
 
+  const handleRemove = async (product_detail_id) => {
+    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?");
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(`http://localhost:8000/cart/${product_detail_id}`, {
+        data: { product_detail_id },
+        withCredentials: true,
+      });
+
+      console.log(response.data.message);
+
+      const updatedCart = cart.cartDetail.filter(
+        (item) => item.ProductDetail.product_detail_id !== product_detail_id
+      );
+
+      setCart({ cartDetail: updatedCart });
+      dispatch(updateCartDetail(updatedCart));
+
+      const updatedSelectedProducts = selectedProducts.filter(
+        (product) => product.product_detail_id !== product_detail_id
+      );
+      setSelectedProducts(updatedSelectedProducts);
+      dispatch(setSelectedItems(updatedSelectedProducts));
+
+    } catch (error) {
+      console.error('Error removing item:', error.message || error);
+    }
+  };
+
+  const isAllSelected = cart.cartDetail.length > 0 && selectedProducts.length === cart.cartDetail.length;
 
   if (loading) {
     return <div>Loading...</div>;
@@ -159,18 +223,25 @@ const Cart = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left font-semibold py-4 text-gray-600">Chọn</th>
+                    <th className="text-left py-4 w-12">
+                      <input
+                        type="checkbox"
+                        onChange={handleSelectAll}
+                        checked={isAllSelected}
+                        className="form-checkbox h-5 w-5 text-blue-600"
+                      />
+                    </th>
                     <th className="text-center font-semibold py-4 text-gray-600">Sản phẩm</th>
-                    <th className="text-left font-semibold py-4 text-gray-600">Giá</th>
-                    <th className="text-left font-semibold py-4 text-gray-600">Số lượng</th>
-                    <th className="text-left font-semibold py-4 text-gray-600">Tổng cộng</th>
-                    <th className="text-left font-semibold py-4 text-gray-600">Hành động</th>
+                    <th className="text-center font-semibold py-4 text-gray-600">Giá</th>
+                    <th className="text-center font-semibold py-4 text-gray-600">Số lượng</th>
+                    <th className="text-center font-semibold py-4 text-gray-600">Tổng cộng</th>
+                    <th className="text-center font-semibold py-4 text-gray-600">Hành động</th>
                   </tr>
                 </thead>
                 <tbody>
                   {cart.cartDetail.map((item) => (
                     <tr className="border-b" key={item.cart_detail_id}>
-                      <td className="py-4">
+                      <td className="py-4 w-12">
                         <input
                           type="checkbox"
                           checked={selectedProducts.some(
@@ -190,8 +261,8 @@ const Cart = () => {
                           <span className="font-semibold text-gray-700">{item.ProductDetail.product.product_name}</span>
                         </div>
                       </td>
-                      <td className="py-4 pr-4 text-gray-600">{item.ProductDetail.product.price.toLocaleString()}₫</td>
-                      <td className="py-4 pr-4">
+                      <td className="py-4 pr-4 w-14 text-center text-gray-600">{item.ProductDetail.product.price.toLocaleString()}₫</td>
+                      <td className="py-4 pr-4 w-12">
                         <div className="flex items-center border border-gray-300 rounded-md w-24">
                           <button
                             onClick={() => handleDecrease(item.ProductDetail.product_detail_id)}
@@ -211,13 +282,13 @@ const Cart = () => {
                           </button>
                         </div>
                       </td>
-                      <td className="py-4 px-2 text-gray-600">{(item.ProductDetail.product.price * item.quantity).toLocaleString()}₫</td>
-                      <td className="py-4">
+                      <td className="py-4 px-2 w-12 text-gray-600">{(item.ProductDetail.product.price * item.quantity).toLocaleString()}₫</td>
+                      <td className="py-2 text-center w-16">
                         <button
                           onClick={() => handleRemove(item.ProductDetail.product_detail_id)}
-                          className="text-red-500 hover:text-red-700 transition"
+                          className="text-red-400 hover:text-red-600 transition" title="Xóa sản phẩm"
                         >
-                          Xóa
+                          <FontAwesomeIcon icon={faTrash} className="text-xl" />
                         </button>
                       </td>
                     </tr>
@@ -235,7 +306,7 @@ const Cart = () => {
               </div>
               <div className="flex justify-between mb-2 text-gray-600">
                 <span>Voucher</span>
-                <span>{totalPrice.toLocaleString()}₫</span>
+                <span>{voucher.toLocaleString()}₫</span>
               </div>
               <hr className="my-4 border-gray-200" />
               <div className="flex justify-between text-lg font-semibold text-gray-700">
