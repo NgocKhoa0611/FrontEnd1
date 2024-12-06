@@ -1,0 +1,165 @@
+.categories-table{
+    background-color: #fff;
+    padding-left: 260px;
+    padding-top: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+#frmaddcate{
+  background-color: #fff;
+  padding-left: 260px;
+  padding-top: 40px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+#frmaddcate .col{
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+.add-btn-categories{
+  color: #ffc107;
+  background-color: transparent;
+  border: 1px solid #ffc107;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin: 6px;
+  text-decoration: none;
+  margin-left: 0px;
+}
+.add-btn-categories:hover{
+  background-color: #ffc107;
+  color: white;
+  border-color: #ffc107;
+}
+.btn-categories-list{
+  color: #0F3460;
+  background-color: transparent;
+  border: 1px solid #0F3460;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin: 6px;
+  margin-top: 5px;
+  text-decoration: none;
+}
+.btn-categories-list:hover{
+  background-color: #0F3460;
+  color: white;
+  border-color: #0F3460;
+}
+.hide-btn-categories{
+  color: #FF4D4D;
+  background-color: transparent;
+  border: 1px solid #FF4D4D;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin: 6px;
+}
+.hide-btn-categories:hover{
+  background-color: #FF4D4D;
+  color: white;
+  border-color: #FF4D4D;
+}
+.show-text {
+  color: gold;
+  border-color: gold;
+}
+
+.show-text:hover {
+  background-color: gold;
+  color: white;
+  border-color: gold;
+}
+.edit-btn{
+  color: #0F3460;
+  background-color: transparent;
+  border: 1px solid #0F3460;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin: 6px;
+  text-decoration: none;
+}
+.edit-btn:hover{
+  background-color: #0F3460;
+  color: white;
+  border-color: #0F3460;
+}
+#frmeditcate{
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+#frmeditcate .col{
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+.edit-btn-categories{
+  color: #ffc107;
+  background-color: transparent;
+  border: 1px solid #ffc107;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin: 6px;
+  text-decoration: none;
+}
+.edit-btn-categories:hover{
+  background-color: #ffc107;
+  color: white;
+  border-color: #ffc107;
+}
+.search-btn-catgories{
+  color: #0F3460;
+  background-color: transparent;
+  border: 1px solid #0F3460;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin: 6px;
+  text-decoration: none;
+  margin-right: 10px;
+}
+.search-btn-catgories:hover{
+  background-color: #0F3460;
+  color: white;
+  border-color: #0F3460;
+}
+.d-flex{
+  display: flex;
+}
+.form-control-search-categories{
+  background-color: #fff;
+  padding: 5px;
+  border-radius: 5px;
+  margin-left: auto;
+  margin-top: 5px;
+  margin-bottom: 7px;
+}
