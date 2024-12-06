@@ -9,43 +9,39 @@ import { useSelector } from 'react-redux';
 import { toast, Toaster } from 'react-hot-toast'; // Import toast
 
 const ProductDetails = () => {
-  const { id } = useParams(); // Get product ID from route parameters
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true); // Loading state to display loading spinner
+  const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState({});
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
-  const [reviews, setReviews] = useState([]);  // State để lưu bình luận
+  const [reviews, setReviews] = useState([]);
+  const [comment, setComment] = useState(""); // State lưu bình luận mới
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // Lấy thông tin sản phẩm từ API
-    fetch(`${API_URL}/product/${id}`)
-      .then(response => response.json())
-      .then(data => {
-        setProduct(data);
-        setSelectedColor(data.detail[0]?.color?.color_name || "");
-        setSelectedSize(data.detail[0]?.size?.size_name || "");
-      })
-      .catch(error => {
-        console.error("Error fetching product:", error);
-      })
-      .finally(() => {
+    // Lấy thông tin sản phẩm và bình luận
+    const fetchData = async () => {
+      try {
+        const productResponse = await fetch(`${API_URL}/product/${id}`);
+        const productData = await productResponse.json();
+        setProduct(productData);
+        setSelectedColor(productData.detail[0]?.color?.color_name || "");
+        setSelectedSize(productData.detail[0]?.size?.size_name || "");
+
+        const reviewsResponse = await fetch(`${API_URL}/review?product_detail_id=${id}`);
+        const reviewsData = await reviewsResponse.json();
+        setReviews(reviewsData || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
 
-    // Lấy bình luận của sản phẩm
-    fetch(`${API_URL}/review`)  // API lấy bình luận
-      .then(response => response.json())
-      .then(data => {
-        setReviews(data);  // Lưu bình luận vào state
-      })
-      .catch(error => {
-        console.error("Error fetching reviews:", error);
-      });
+    fetchData();
   }, [id]);
-
   // const addToCartHandler = async () => {
   //   if (!product.product_name) {
   //     alert("Dữ liệu sản phẩm chưa được tải đầy đủ.");
@@ -111,6 +107,62 @@ const ProductDetails = () => {
   //     alert("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.");
   //   }
   // };
+
+  const handleSendComment = async () => {
+    if (!comment.trim()) {
+      toast.error("Bình luận không được để trống!");
+      return;
+    }
+  
+    // Kiểm tra token và lấy user_id từ cookie
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
+  
+    if (!token) {
+      alert("Bạn cần đăng nhập để bình luận!");
+      navigate("/login"); // Điều hướng người dùng đến trang đăng nhập nếu chưa có token
+      return;
+    }
+  
+    // Giải mã token để lấy user_id
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.id; // Lấy user_id từ payload (kiểm tra lại payload của token)
+  
+    if (!userId) {
+      alert("Không tìm thấy thông tin người dùng!");
+      return;
+    }
+  
+    try {
+      const newReview = {
+        content: comment,
+        date: new Date().toISOString(),
+        product_detail_id: id, // Bạn cần đảm bảo `id` là id chi tiết sản phẩm hiện tại
+        user_id: userId, // Thêm user_id vào đây
+      };
+  
+      const response = await axios.post(`${API_URL}/review`, newReview, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Gửi token để xác thực
+        },
+      });
+  
+      if (response.status === 201) {
+        setReviews((prev) => [response.data.review, ...prev]); // Cập nhật danh sách bình luận
+        setComment(""); // Reset khung nhập
+        toast.success("Gửi bình luận thành công!");
+      }
+    } catch (error) {
+      console.error("Error sending comment:", error);
+      toast.error("Gửi bình luận thất bại!");
+    }
+  };
+  
+  
+  
+
 
   const addToCart = async () => {
     console.log('Product ID', product.product_id);
@@ -333,17 +385,22 @@ const ProductDetails = () => {
         <h3>Bình luận</h3>
         <div className="comment-form mt-5">
           <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
             placeholder="Viết bình luận..."
             className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           ></textarea>
-          <button className="mt-3 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none">
+          <button
+            onClick={handleSendComment}
+            className="mt-3 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none"
+          >
             Gửi
           </button>
         </div>
 
         <div className="comments-list mt-5">
           {reviews.length > 0 ? (
-            reviews.map((review, index) => (
+            reviews.map((review) => (
               <div key={review.review_id} className="comment-item mb-6">
                 <div className="comment-header flex items-center mb-3">
                   <img
@@ -364,7 +421,6 @@ const ProductDetails = () => {
           )}
         </div>
       </div>
-
       {/* Toast container */}
       <Toaster position="top-center" />
     </div>
