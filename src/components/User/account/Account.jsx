@@ -12,6 +12,7 @@ const Account = () => {
     address: "",
   });
   const [orders, setOrders] = useState([]);
+
   useEffect(() => {
     const token = document.cookie.split("; ").find(row => row.startsWith("token="));
     if (token) {
@@ -53,13 +54,21 @@ const Account = () => {
   };
   const fetchOrderHistory = async () => {
     try {
-      const token = document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1];
-      const response = await axios.get("http://localhost:8000/orders", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setOrders(response.data); // Set the fetched orders
+      const token = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) return;
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userId = payload.id;
+      const response = await axios.get(`http://localhost:8000/orders/${userId}`,
+        { withCredentials: true },
+      );
+      setOrders(response.data.order);
+      console.log(response.data.order);
+
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
@@ -99,6 +108,29 @@ const Account = () => {
       fetchUser(); // Reload user data after update
     } catch (error) {
       console.error("Error updating user:", error);
+    }
+  };
+  const cancelOrder = async (orderId) => {
+    const order = orders.find(order => order.orders_id === orderId);
+    if (order && order.order_status !== 'Chờ xử lý') {
+      alert('Chỉ có thể hủy đơn hàng ở trạng thái "Chờ xử lý".');
+      return;
+    }
+
+    const confirmCancel = window.confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');
+    if (!confirmCancel) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/orders/${orderId}/cancel`, {
+        method: 'PUT',
+      });
+      if (!response.ok) throw new Error("Không thể hủy đơn hàng");
+      alert("Đơn hàng đã được hủy thành công!");
+      fetchOrderHistory();
+    } catch (error) {
+      console.error("Lỗi khi hủy đơn hàng:", error);
     }
   };
 
@@ -215,18 +247,48 @@ const Account = () => {
                 <table className="w-full table-auto">
                   <thead>
                     <tr className="text-left">
-                      <th className="px-4 py-2 font-semibold text-sm text-gray-700">ID Đơn Hàng</th>
+                      <th className="px-2 py-2 font-semibold text-sm text-gray-700">Mã Đơn Hàng</th>
                       <th className="px-4 py-2 font-semibold text-sm text-gray-700">Ngày Đặt</th>
                       <th className="px-4 py-2 font-semibold text-sm text-gray-700">Trạng Thái</th>
+                      <th className="px-4 py-2 font-semibold text-sm text-gray-700">Hình thức thanh toán</th>
+                      <th className="px-4 py-2 font-semibold text-sm text-gray-700">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
                     {orders.length > 0 ? (
                       orders.map(order => (
-                        <tr key={order.id} className="border-b">
-                          <td className="px-4 py-2">{order.id}</td>
-                          <td className="px-4 py-2">{order.date}</td>
-                          <td className="px-4 py-2">{order.status}</td>
+                        <tr key={order.orders_id} className="border-b">
+                          <td className="px-2 py-1 w-20">{order.orders_id}</td>
+                          <td className="px-2 py-1 w-25">
+                            {new Date(order.order_date).toLocaleString('vi-VN', {
+                              timeZone: 'UTC',
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              hour12: false,
+                            })}
+                          </td>
+                          <td className="px-4 py-2">{order.order_status}</td>
+                          <td className="px-4 py-2">{order.payment_method}</td>
+                          <td>
+                            {order.order_status === "Chờ xử lý" ? (
+                              <button
+                                className="cancel-btn text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
+                                onClick={() => cancelOrder(order.orders_id)}
+                              >
+                                Hủy đơn
+                              </button>
+                            ) : (
+                              <button
+                                className="cancel-btn text-gray-500 bg-gray-200 px-3 py-1 rounded cursor-not-allowed"
+                                disabled
+                              >
+                                Hủy đơn
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       ))
                     ) : (

@@ -48,6 +48,10 @@ function OrderList() {
             alert('Chỉ có thể hủy đơn hàng ở trạng thái "Chờ xử lý".');
             return;
         }
+        const confirmCancel = window.confirm('Bạn có chắc chắn muốn hủy đơn hàng này không?');
+        if (!confirmCancel) {
+            return;
+        }
         try {
             const response = await fetch(`http://localhost:8000/orders/${orderId}/cancel`, {
                 method: 'PUT',
@@ -124,12 +128,21 @@ function OrderList() {
                                 ) : (
                                     <Link to={`/orders/edit/${order.orders_id}`} className="edit-btn">Cập nhật</Link>
                                 )}
-                                <button
-                                    className="cancel-btn"
-                                    onClick={() => cancelOrder(order.orders_id)}
-                                >
-                                    Hủy đơn
-                                </button>
+                                {order.order_status === "Chờ xử lý" ? (
+                                    <button
+                                        className="cancel-btn"
+                                        onClick={() => cancelOrder(order.orders_id)}
+                                    >
+                                        Hủy đơn
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="cancel-btn"
+                                        disabled
+                                    >
+                                        Hủy đơn
+                                    </button>
+                                )}
                             </td>
                         </tr>
                     ))}

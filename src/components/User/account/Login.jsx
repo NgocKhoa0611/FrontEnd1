@@ -39,7 +39,12 @@ const Login = () => {
           window.location.href = '/';
         }
       } catch (error) {
-        setFieldError('general', error.response?.data?.message || error.message);
+        const status = error.response?.status;
+        if (status === 403) {
+          setFieldError('general', 'Tài khoản chưa được xác nhận. Vui lòng kiểm tra email.');
+        } else {
+          setFieldError('general', error.response?.data?.message || error.message);
+        }
       } finally {
         setSubmitting(false);
       }
@@ -65,6 +70,9 @@ const Login = () => {
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <form onSubmit={formik.handleSubmit} className="space-y-6">
+              {formik.errors.general && (
+                <div className="text-red-600 text-sm text-center">{formik.errors.general}</div>
+              )}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email

@@ -18,6 +18,7 @@ const ProductDetails = () => {
   const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState([]);
+  const [comment, setComment] = useState("");
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -35,7 +36,7 @@ const ProductDetails = () => {
       .finally(() => {
         setLoading(false);
       });
-    fetch(`${API_URL}/review`)  // API lấy bình luận
+    fetch(`${API_URL}/review/${id}`)  // API lấy bình luận
       .then(response => response.json())
       .then(data => {
         setReviews(data);  // Lưu bình luận vào state
@@ -170,6 +171,58 @@ const ProductDetails = () => {
     }
   };
 
+  const handleSendComment = async () => {
+    if (!comment.trim()) {
+      toast.error("Bình luận không được để trống!");
+      return;
+    }
+
+    // Kiểm tra token và lấy user_id từ cookie
+    const token = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("token="))
+      ?.split("=")[1];
+
+    if (!token) {
+      alert("Bạn cần đăng nhập để bình luận!");
+      navigate("/login"); // Điều hướng người dùng đến trang đăng nhập nếu chưa có token
+      return;
+    }
+
+    // Giải mã token để lấy user_id
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.id; // Lấy user_id từ payload (kiểm tra lại payload của token)
+
+    if (!userId) {
+      alert("Không tìm thấy thông tin người dùng!");
+      return;
+    }
+
+    try {
+      const newReview = {
+        content: comment,
+        date: new Date().toISOString(),
+        product_detail_id: id, // Bạn cần đảm bảo `id` là id chi tiết sản phẩm hiện tại
+        user_id: userId, // Thêm user_id vào đây
+      };
+
+      const response = await axios.post(`${API_URL}/review`, newReview, {
+        headers: {
+          Authorization: `Bearer ${token}`, // Gửi token để xác thực
+        },
+      });
+
+      if (response.status === 201) {
+        setReviews((prev) => [response.data.review, ...prev]); // Cập nhật danh sách bình luận
+        setComment(""); // Reset khung nhập
+        toast.success("Gửi bình luận thành công!");
+      }
+    } catch (error) {
+      console.error("Error sending comment:", error);
+      toast.error("Gửi bình luận thất bại!");
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -251,34 +304,39 @@ const ProductDetails = () => {
       </div>
 
       {/* Comments Section */}
-      <div className="content-cmt mt-10 px-5">
-        <h3 className="text-xl font-semibold">Bình luận</h3>
+      <div className="comments-section mt-5">
+        <h3>Bình luận</h3>
         <div className="comment-form mt-5">
           <textarea
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
             placeholder="Viết bình luận..."
             className="w-full p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           ></textarea>
-          <button className="mt-3 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none">
+          <button
+            onClick={handleSendComment}
+            className="mt-3 px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none"
+          >
             Gửi
           </button>
         </div>
 
         <div className="comments-list mt-5">
           {reviews.length > 0 ? (
-            reviews.map((review, index) => (
+            reviews.map((review) => (
               <div key={review.review_id} className="comment-item mb-6">
                 <div className="comment-header flex items-center mb-3">
                   <img
-                    src={comment.user.avatar || "https://via.placeholder.com/40"}
+                    src={`${API_URL}/avatar/${review.user.avatar}`}
                     alt="User Avatar"
                     className="w-10 h-10 rounded-full object-cover mr-3"
                   />
-                  <p className="font-semibold">{comment.user.name}</p>
+                  <p className="font-semibold">{`${review.user.name}`}</p>
+                  <span className="text-gray-500 text-sm ml-2">
+                    {new Date(review.date).toLocaleString()}
+                  </span>
                 </div>
-                <p className="font-semibold">{`User ${review.user_id}`}</p>
-                <span className="text-gray-500 text-sm ml-2">
-                  {new Date(review.date).toLocaleString()}
-                </span>
+                <p className="comment-text">{review.content}</p>
               </div>
             ))
           ) : (

@@ -45,7 +45,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <header className="header">
+    <section className="navbar">
       <div className="container flex justify-between items-center">
         <div className="navlink z-50">
           {loading ? (
@@ -122,7 +122,7 @@ const Navbar = () => {
           </button>
         </div>
       </div>
-    </header>
+    </section>
   );
 }
 

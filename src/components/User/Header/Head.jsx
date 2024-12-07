@@ -7,7 +7,7 @@ const Head = () => {
             <i className="fa fa-phone"></i>
             <label> +88012 3456 7894</label>
             <i className="fa fa-envelope"></i>
-            <label> fashionverse@gmail.com</label>
+            <label> fashionverse3@gmail.com</label>
           </div>
         </div>
       </section>

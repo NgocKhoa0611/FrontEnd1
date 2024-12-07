@@ -481,22 +481,19 @@ button {
 .catgrories h4 i {
   margin-left: 10px;
 }
-header {
+.navbar {
   height: 8vh;
   box-shadow: -1px 15px 17px -8px rgba(0, 0, 0, 0.1);
 }
-header ul {
+.navbar ul {
   line-height: 8vh;
 }
-header ul li {
-  margin-left: 30px;
-}
-header ul li a {
+.navbar ul li a {
   transition: 0.5s;
   font-size: 15px;
   font-weight: 400;
 }
-header ul li a:hover {
+.navbar ul li a:hover {
   color: #ff014f;
 }
 
@@ -504,7 +501,7 @@ header ul li a:hover {
   display: none;
 }
 .search.active {
-  height: 12vh;
+  height: 11vh;
   position: fixed;
   top: 0;
   z-index: 1000;
@@ -515,7 +512,7 @@ header ul li a:hover {
 }
 
 @media (max-width: 768px) {
-  header ul {
+  .navbar ul {
     padding-top: 30px;
   }
   .nav-links-mobile {
@@ -532,13 +529,13 @@ header ul li a:hover {
     background-color: white;
     z-index: 888;
   }
-  header ul li {
+  .navbar ul li {
     width: 100%;
     transition: all 0.5s ease-in-out;
     text-transform: uppercase;
     line-height: 70px;
   }
-  header .link {
+  .navbar .link {
     display: none;
   }
   .close,
@@ -563,7 +560,7 @@ header ul li a:hover {
     height: 60px;
     line-height: 60px;
   }
-  .header.active {
+  .navbar.active {
     height: 10vh;
   }
 }
