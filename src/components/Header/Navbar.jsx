@@ -47,7 +47,7 @@ const Navbar = () => {
   return (
     <header className="header">
       <div className="container flex justify-between items-center">
-        <div className="navlink z-50">
+        <div className="navlink z-40">
           {loading ? (
             <div>Đang tải...</div>
           ) : (
