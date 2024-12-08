@@ -150,6 +150,7 @@ const ProductDetails = () => {
       });
   
       if (response.status === 201) {
+        console.log("response.data.review", response.data.review)
         setReviews((prev) => [response.data.review, ...prev]); // Cập nhật danh sách bình luận
         setComment(""); // Reset khung nhập
         toast.success("Gửi bình luận thành công!");
