@@ -13,6 +13,7 @@ import Category from "./pages/Category.jsx";
 import Checkout from "./pages/Checkout.jsx";
 import Account from "./pages/account.jsx";
 import CategoryParent from "./components/Category/parentID.jsx";
+import Favorite from "./components/Favorite/Favorite.jsx";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         <Route path="category/parent/:id" element={<CategoryParent />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/Favorite" element={<Favorite />}/>
         <Route path="/account" element={<Account />} />
         <Route path="/account/:userId" element={<Account />} />
         <Route path="*" element={<NotFound />} />
