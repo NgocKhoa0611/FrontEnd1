@@ -4,18 +4,17 @@ import logo from "../../assets/images/logo.png";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setCartItems } from "../../../redux/slices/cartslice";
-import { debounce } from "lodash"; // Thêm lodash để debounce
+import { debounce } from "lodash";
 
 const Search = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [user, setUser] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(""); // Quản lý giá trị nhập vào
-  const [searchResults, setSearchResults] = useState([]); // Quản lý kết quả tìm kiếm
-  const [loading, setLoading] = useState(false); // Quản lý trạng thái loading
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
-  
-  const searchResultsRef = useRef(null); // Sử dụng ref để tham chiếu đến kết quả tìm kiếm
+  const searchResultsRef = useRef(null);
 
   useEffect(() => {
     const token = document.cookie
@@ -37,7 +36,6 @@ const Search = () => {
       const response = await axios.get("http://localhost:8000/cart", {
         withCredentials: true,
       });
-      console.log("Cart items:", response.data);
       dispatch(setCartItems(response.data));
     } catch (error) {
       console.error("Error fetching cart:", error.message);
@@ -77,14 +75,13 @@ const Search = () => {
     setShowDropdown(!showDropdown);
   };
 
-  // Hàm tìm kiếm đã debounce
   const debouncedSearch = debounce(async (term) => {
     if (!term.trim()) {
       setSearchResults([]);
       return;
     }
 
-    setLoading(true); // Bắt đầu loading
+    setLoading(true);
     try {
       const response = await axios.get(`http://localhost:8000/product/search?name=${term.trim()}`);
       setSearchResults(response.data);
@@ -92,16 +89,14 @@ const Search = () => {
       console.error("Error fetching search results:", error.message);
       setSearchResults([]);
     } finally {
-      setLoading(false); // Dừng loading
+      setLoading(false);
     }
-  }, 500); // Chờ 500ms trước khi gửi yêu cầu tìm kiếm
+  }, 500);
 
-  // Hiển thị kết quả tìm kiếm khi searchTerm thay đổi
   useEffect(() => {
     debouncedSearch(searchTerm);
   }, [searchTerm]);
 
-  // Hàm để ẩn kết quả tìm kiếm khi nhấn ngoài
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (searchResultsRef.current && !searchResultsRef.current.contains(e.target)) {
@@ -115,9 +110,8 @@ const Search = () => {
     };
   }, []);
 
-  // Reset searchTerm khi quay lại trang chủ hoặc sau khi tìm kiếm
   const resetSearchTerm = () => {
-    setSearchTerm("");  // Reset giá trị tìm kiếm khi quay lại
+    setSearchTerm("");
   };
 
   return (
@@ -132,11 +126,10 @@ const Search = () => {
             type="text"
             placeholder="Tìm kiếm sản phẩm"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật giá trị nhập
-            className=" p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
 
-          {/* Kết quả tìm kiếm */}
           {searchTerm && (
             <div
               ref={searchResultsRef}
@@ -174,7 +167,6 @@ const Search = () => {
           )}
         </div>
 
-        {/* Các biểu tượng khác */}
         <div className="icon f_flex width">
           {isLoggedIn && user ? (
             <div className="user-menu relative group m-0 block min-w-[90px] text-center cursor-pointer">
@@ -214,8 +206,9 @@ const Search = () => {
           )}
 
           <div className="favorite relative">
-            <Link to="/favorites">
-              <i className="fa fa-heart icon-circle"></i>
+            <Link to="/Favorite" className="flex items-center">
+              <i className="fa fa-heart icon-circle hover:text-red-600"></i>
+          
             </Link>
           </div>
 
