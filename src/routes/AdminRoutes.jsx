@@ -9,6 +9,7 @@ import ProductsDetailList from '../components/Admin/products/ProductsDetailList'
 import ProductsAdd from '../components/Admin/products/ProductsAdd';
 import ProductsEdit from '../components/Admin/products/ProductsEdit';
 import ProductDetailList from '../components/Admin/products/ProductsDetailList';
+import DetailAdd from '../components/Admin/products/DetailAdd';
 import DetailEdit from '../components/Admin/products/DetailEdit';
 import CategoriesList from '../components/Admin/categories/CategoriesList';
 import CategoriesAdd from '../components/Admin/categories/CategoriesAdd';
@@ -34,6 +35,7 @@ const AdminRoutes = () => {
                         <Route path="/productlist/add-product" element={<ProductsAdd />} />
                         <Route path="/productlist/edit-product/:id" element={<ProductsEdit />} />
                         <Route path="/productdetaillist/:id" element={<ProductDetailList />} />
+                        <Route path="/productdetaillist/add-detail/:id" element={<DetailAdd />} />
                         <Route path="/productdetaillist/edit-detail/:id" element={<DetailEdit />} />
                         <Route path="/categorieslist" element={<CategoriesList />} />
                         <Route path="/categorieslist/add-categories" element={<CategoriesAdd />} />

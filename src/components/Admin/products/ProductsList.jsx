@@ -107,7 +107,8 @@ function ProductList() {
           </tr>
         </thead>
         <tbody>
-          {currentProducts.map(product => (
+          {currentProducts.length > 0 ? (
+            currentProducts.map(product => (
             <tr key={product.product_id}>
               <td>{product.product_id}</td>
               <td>{product.product_name}</td>
@@ -121,15 +122,21 @@ function ProductList() {
                 </button>
               </td>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="pagination">
-        <button onClick={handlePrevPage} disabled={currentPage === 1}>Trang trước</button>
-        <span>Trang {currentPage} / {totalPages}</span>
-        <button onClick={handleNextPage} disabled={currentPage === totalPages}>Trang sau</button>
-      </div>
+          ))
+          ) : (
+              <tr>
+                <td colSpan="5" className="text-center">Không tìm thấy sản phẩm nào</td>
+              </tr>
+          ) 
+        }
+      </tbody>
+    </table>
+    <div className="pagination">
+      <button onClick={handlePrevPage} disabled={currentPage === 1}>Trang trước</button>
+      <span>Trang {currentPage} / {totalPages}</span>
+      <button onClick={handleNextPage} disabled={currentPage === totalPages}>Trang sau</button>
     </div>
+  </div>
   );
 }
 

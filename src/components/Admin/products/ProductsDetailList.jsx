@@ -80,7 +80,7 @@ function ProductDetailList() {
     <div className="products-table">
       <h1 className="title-page-products">Danh sách chi tiết sản phẩm</h1>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <Link to={`add-detail`} className="add-btn-products">Thêm chi tiết</Link>
+        <Link to={`/admin/productdetaillist/add-detail`} className="add-btn-products">Thêm chi tiết</Link>
       </div>
       <table className="table-products">
         <thead>

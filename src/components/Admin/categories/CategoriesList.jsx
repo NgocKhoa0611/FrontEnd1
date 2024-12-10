@@ -76,7 +76,7 @@ function CategoriesList() {
 
     const handleSortById = () => {
         setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-      };
+    };
 
     useEffect(() => {
         fetchCategories();
@@ -107,7 +107,8 @@ function CategoriesList() {
                     </tr>
                 </thead>
                 <tbody>
-                    {currentCategories.map((categories) => (
+                    {currentCategories.length > 0 ? (
+                        currentCategories.map((categories) => (
                         <tr key={categories.category_id}>
                             <td>{categories.category_id}</td>
                             <td>{categories.category_parent_id}</td>
@@ -119,7 +120,13 @@ function CategoriesList() {
                                 </button>
                             </td>
                         </tr>
-                    ))}
+                    ))
+                    ) : (
+                            <tr>
+                                <td colSpan="4" className="text-center">Không tìm thấy danh mục nào</td>
+                            </tr>
+                        )
+                    }
                 </tbody>
             </table>
             <div className="pagination">
@@ -127,7 +134,7 @@ function CategoriesList() {
                 <span className="pagination-info">Trang {currentPage} / {totalPages}</span>
                 <button onClick={handleNextPage} disabled={currentPage === totalPages} className="pagination-btn">Trang sau</button>
             </div>
-        </div>
+        </div>  
     );
 }
 

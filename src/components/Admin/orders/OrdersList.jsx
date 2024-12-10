@@ -5,6 +5,8 @@ import './Orders.css';
 function OrderList() {
     const [ordersList, setOrdersList] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [sortOrder, setSortOrder] = useState('asc');
     const ordersPerPage = 5;
 
     const fetchOrders = async () => {
@@ -64,16 +66,23 @@ function OrderList() {
         }
     };
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
+    const filteredOrders = ordersList.filter(orders =>
+        orders.orders_id.toString().includes(searchKeyword)
+    );
 
-    // Pagination logic
+    const sortedOrders = [...filteredOrders].sort((a, b) => {
+        if (sortOrder === 'asc') {
+          return a.orders_id - b.orders_id;
+        } else {
+          return b.orders_id - a.orders_id;
+        }
+      })
+
     const indexOfLastOrder = currentPage * ordersPerPage;
     const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-    const currentOrders = ordersList.slice(indexOfFirstOrder, indexOfLastOrder);
+    const currentOrders = sortedOrders.slice(indexOfFirstOrder, indexOfLastOrder);
 
-    const totalPages = Math.ceil(ordersList.length / ordersPerPage);
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
@@ -87,19 +96,33 @@ function OrderList() {
         }
     };
 
+    const handleSortById = () => {
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    };
+
+    useEffect(() => {
+        fetchOrders();
+    }, []);
+
     return (
         <div className="orders-table">
-            <h3 className="title-page">Danh sách đơn hàng</h3>
-            <form className="d-flex" role="search">
-                <input className="form-control-search-orders" type="search" placeholder="Tìm kiếm đơn hàng..." aria-label="Search" />
+            <h1 className="title-page-orders">Danh sách đơn hàng</h1>
+            <form className="d-flex" role="search" onSubmit={(e) => e.preventDefault()}>
+                <input className="form-control-search-orders" type="search" placeholder="Tìm kiếm đơn hàng..." aria-label="Search" value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} />
                 <button className="search-btn-orders" type="submit">Tìm kiếm</button>
             </form>
-            <table id="example" className="table table-hover">
+            <table id="example" className="table-orders">
                 <thead>
                     <tr>
-                        <th>ID đơn hàng</th>
+                        <th style={{ width: '10%' }}>
+                            <span>ID</span>
+                            <button className="sort-btn" onClick={handleSortById}>
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+                        </th>
                         <th>Ngày đặt hàng</th>
                         <th>Tổng tiền</th>
+                        <th>Địa chỉ giao hàng</th>
                         <th>Trạng thái đơn hàng</th>
                         <th>Ngày thanh toán</th>
                         <th>Phương thức thanh toán</th>
@@ -108,11 +131,13 @@ function OrderList() {
                     </tr>
                 </thead>
                 <tbody>
-                    {currentOrders.map(order => (
+                    {currentOrders.length > 0 ? (
+                        currentOrders.map(order => (
                         <tr key={order.orders_id}>
                             <td>{order.orders_id}</td>
                             <td>{new Date(order.order_date).toLocaleDateString()}</td>
                             <td>{order.total_price.toLocaleString('vi-VN')} VND</td>
+                            <td>{order.address}</td>
                             <td>{order.order_status}</td>
                             <td>{order.payment_date ? new Date(order.payment_date).toLocaleDateString() : "Chưa thanh toán"}</td>
                             <td>{order.payment_method}</td>
@@ -124,23 +149,19 @@ function OrderList() {
                                     <Link to={`/orderslist/edit/${order.orders_id}`} className="edit-btn">Cập nhật</Link>
                                 )}
                                 {order.order_status === "Chờ xử lý" ? (
-                                    <button
-                                        className="cancel-btn"
-                                        onClick={() => cancelOrder(order.orders_id)}
-                                    >
-                                        Hủy đơn
-                                    </button>
+                                    <button className="cancel-btn"  onClick={() => cancelOrder(order.orders_id)}>Hủy đơn</button>
                                 ) : (
-                                    <button
-                                        className="cancel-btn"
-                                        disabled
-                                    >
-                                        Hủy đơn
-                                    </button>
+                                    <button className="cancel-btn" disabled> Hủy đơn</button>
                                 )}
                             </td>
                         </tr>
-                    ))}
+                    ))
+                    ) : (
+                            <tr>
+                                <td colSpan="9" style={{ textAlign: 'center' }}>Không tìm thấy đơn hàng nào</td>
+                            </tr>
+                        )
+                    }
                 </tbody>
             </table>
 
