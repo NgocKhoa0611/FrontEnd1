@@ -47,16 +47,16 @@ const Products = () => {
 
   // Lọc sản phẩm theo màu sắc và kích cỡ
   const filteredProducts = products.filter((product) => {
-    // Kiểm tra điều kiện lọc
     const isPriceInRange = (product.price_promotion >= minPrice && product.price_promotion <= maxPrice) ||
       (product.price >= minPrice && product.price <= maxPrice);
     const isCategoryMatch = selectedCategory ? product.category_id === selectedCategory : true;
-    const isColorMatch = selectedColor ? product.color_id === selectedColor : true;  // Lọc theo màu sắc
+    const isColorMatch = selectedColor ? product.color_id === selectedColor : true;  // Lọc theo màu
     const isSizeMatch = selectedSize ? product.size_id === selectedSize : true;  // Lọc theo kích cỡ
     const isNotHidden = product.is_hidden === 0;  // Chỉ hiển thị sản phẩm không ẩn
-
+  
     return isPriceInRange && isCategoryMatch && isColorMatch && isSizeMatch && isNotHidden;
   });
+  
 
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
@@ -160,47 +160,48 @@ const Products = () => {
             </div>
           </div>
 
-          {/* Bộ lọc theo màu */}
-          <div className="color-filter mb-4">
-            <label htmlFor="color">Màu sắc:</label>
-            <select
-              id="color"
-              value={selectedColor}
-              onChange={(e) => {
-                setSelectedColor(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="border p-2 w-full"
-            >
-              <option value="">Tất cả</option>
-              {colors.map((color) => (
-                <option key={color.color_id} value={color.color_id}>
-                  {color.color_name}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Bộ lọc theo màu */}
+<div className="color-filter mb-4">
+  <label htmlFor="color">Màu sắc:</label>
+  <select
+    id="color"
+    value={selectedColor}
+    onChange={(e) => {
+      setSelectedColor(e.target.value);
+      setCurrentPage(1);  // Reset trang khi thay đổi bộ lọc
+    }}
+    className="border p-2 w-full"
+  >
+    <option value="">Tất cả</option>
+    {colors.map((color) => (
+      <option key={color.color_id} value={color.color_id}>
+        {color.color_name}
+      </option>
+    ))}
+  </select>
+</div>
 
-          {/* Bộ lọc theo kích cỡ */}
-          <div className="size-filter mb-4">
-            <label htmlFor="size">Kích cỡ:</label>
-            <select
-              id="size"
-              value={selectedSize}
-              onChange={(e) => {
-                setSelectedSize(Number(e.target.value));  // Ensure it's a number
-                setCurrentPage(1);
-              }}
-              className="border p-2 w-full"
-            >
-              <option value="">Tất cả</option>
-              {sizes.map((size) => (
-                <option key={size.size_id} value={size.size_id}>
-                  {size.size_name}
-                </option>
-              ))}
-            </select>
-          </div>
+{/* Bộ lọc theo kích cỡ */}
+<div className="size-filter mb-4">
+  <label htmlFor="size">Kích cỡ:</label>
+  <select
+    id="size"
+    value={selectedSize}
+    onChange={(e) => {
+      setSelectedSize(Number(e.target.value));  // Đảm bảo giá trị là số
+      setCurrentPage(1);  // Reset trang khi thay đổi bộ lọc
+    }}
+    className="border p-2 w-full"
+  >
+    <option value="">Tất cả</option>
+    {sizes.map((size) => (
+      <option key={size.size_id} value={size.size_id}>
+        {size.size_name}
+      </option>
+    ))}
+  </select>
+</div>
+
         </div>
 
         <div className="products-container col-span-3">

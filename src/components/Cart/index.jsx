@@ -117,11 +117,11 @@ const Cart = () => {
       );
 
       const updatedCart = cart.cartDetail.map((item) => {
-        if (item.ProductDetail.product_detail_id === productDetailId && item.quantity > 1) {
+        if (item.ProductDetail.product_detail_id === product_detail_id && item.quantity > 1) {
           item.quantity -= 1;
           setSelectedProducts((prevSelected) =>
             prevSelected.map((product) =>
-              product.product_detail_id === productDetailId
+              product.product_detail_id === product_detail_id
                 ? { ...product, quantity: product.quantity - 1 }
                 : product
             )
@@ -133,7 +133,7 @@ const Cart = () => {
       setCart({ cartDetail: updatedCart });
 
       const updatedSelectedProducts = selectedProducts.map((product) =>
-        product.product_detail_id === productDetailId
+        product.product_detail_id === product_detail_id
           ? { ...product, quantity: product.quantity - 1 }
           : product
       );
@@ -214,6 +214,7 @@ const Cart = () => {
                       <td className="py-4 px-2 text-gray-600">{(item.ProductDetail.product.price * item.quantity).toLocaleString()}₫</td>
                       <td className="py-4">
                         <button
+                          // eslint-disable-next-line no-undef
                           onClick={() => handleRemove(item.ProductDetail.product_detail_id)}
                           className="text-red-500 hover:text-red-700 transition"
                         >
