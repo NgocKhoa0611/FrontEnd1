@@ -5,6 +5,7 @@ import axios from "axios";
 import "./index.css";
 import { useDispatch } from "react-redux";
 import { addCartDetail } from '../../../../redux/slices/cartslice';
+import { setSelectedItems } from '../../../../redux/slices/orderslice';
 import { useSelector } from 'react-redux';
 import { toast, Toaster } from 'react-hot-toast'; // Import toast
 
@@ -14,8 +15,6 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true); // Loading state to display loading spinner
   const [product, setProduct] = useState({});
   const [selectedDetailId, setSelectedDetailId] = useState("");
-  const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState([]);
   const [comment, setComment] = useState("");
@@ -27,8 +26,7 @@ const ProductDetails = () => {
       .then(response => response.json())
       .then(data => {
         setProduct(data);
-        setSelectedColor(data.detail[0]?.color?.color_name || "");
-        setSelectedSize(data.detail[0]?.size?.size_name || "");
+        setSelectedDetailId(data.detail[0].product_detail_id);
       })
       .catch(error => {
         console.error("Error fetching product:", error);
@@ -48,13 +46,8 @@ const ProductDetails = () => {
 
   const handleDetailSelect = (detailId) => {
     setSelectedDetailId(detailId);
-    const selectedDetail = product.detail.find(
-      (detail) => detail.product_detail_id === detailId
-    );
-    setSelectedColor(selectedDetail?.color?.color_name || "");
-    setSelectedSize(selectedDetail?.size?.size_name || "");
   };
-
+  console.log("Selected Detail ID (Add to Cart):", selectedDetailId);
   const incrementQuantity = () => setQuantity(quantity + 1);
   const decrementQuantity = () => {
     if (quantity > 1) setQuantity(quantity - 1);
@@ -75,14 +68,13 @@ const ProductDetails = () => {
       (detail) => detail.product_detail_id === selectedDetailId
     );
 
-    // Kiểm tra nếu `selectedDetailId` không hợp lệ
+    // Validate that a product detail is selected
     if (!selectedDetail) {
       alert("Vui lòng chọn một chi tiết sản phẩm trước khi thêm vào giỏ hàng.");
       return;
     }
 
     try {
-      // Gửi yêu cầu thêm vào giỏ hàng
       const newItem = {
         product_detail_id: selectedDetail.product_detail_id,
         quantity,
@@ -93,16 +85,14 @@ const ProductDetails = () => {
         name: product.product_name,
       };
 
-      console.log("newItem", newItem);
-
-      // Gửi yêu cầu POST tới API để thêm vào giỏ hàng
+      // Send POST request to add item to cart
       const response = await axios.post(
         "http://localhost:8000/cart/add",
         { newItem },
         { withCredentials: true }
       );
 
-      // Cập nhật Redux store nếu thêm thành công
+      // Update Redux store if successful
       if (response.status === 200) {
         dispatch(addCartDetail(newItem));
         alert(`${product.product_name} đã được thêm vào giỏ hàng.`);
@@ -113,12 +103,9 @@ const ProductDetails = () => {
     }
   };
 
-
   const handleBuyNow = async () => {
     const selectedDetail = product.detail.find(
-      (detail) =>
-        detail.size.size_name === selectedSize &&
-        detail.color.color_name === selectedColor
+      (detail) => detail.product_detail_id === selectedDetailId
     );
 
     if (!selectedDetail) {
@@ -133,27 +120,16 @@ const ProductDetails = () => {
     }
 
     try {
-      const productDetailResponse = await axios.get(`http://localhost:8000/product/${product_id}`, {
-        withCredentials: true,
-      });
-      const productDetail = productDetailResponse.data.detail[0];
-      const productData = productDetailResponse.data;
-      const newItem =
-      {
-        product_detail_id: productDetail.product_detail_id,
-        product_name: productData.product_name,
-        price: productData.price,
-        quantity: 1,
-        size: selectedSize,
-        color: selectedColor,
-        img_url: productDetail.productImage.img_url,
-      }
-        ;
+      const newItem = {
+        product_detail_id: selectedDetail.product_detail_id,
+        quantity,
+        size: selectedDetail.size.size_name,
+        color: selectedDetail.color.color_name,
+        img_url: selectedDetail.productImage.img_url,
+        price: product.price,
+        name: product.product_name,
+      };
 
-      if (productDetail?.is_primary !== true) {
-        alert("Sản phẩm này không phải là sản phẩm chính. Không thể thêm vào giỏ hàng.");
-        return;
-      }
       const response = await axios.post('http://localhost:8000/cart/add', {
         newItem,
       }, {
@@ -253,10 +229,7 @@ const ProductDetails = () => {
               className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {product.detail.map((detail) => (
-                <option
-                  key={detail.product_detail_id}
-                  value={detail.product_detail_id}
-                >
+                <option key={detail.product_detail_id} value={detail.product_detail_id}>
                   {`Màu ${detail.color.color_name} - Size ${detail.size.size_name}`}
                 </option>
               ))}

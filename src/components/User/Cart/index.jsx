@@ -223,7 +223,7 @@ const Cart = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-4 w-12">
+                    <th className="text-center py-4 w-12">
                       <input
                         type="checkbox"
                         onChange={handleSelectAll}

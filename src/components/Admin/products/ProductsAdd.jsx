@@ -38,7 +38,7 @@ function ProductAdd() {
           price: '',
           price_promotion: 0,
         });
-        navigate('/product');
+        navigate('/productlist');
       })
       .catch((error) => {
         console.error("Lỗi khi thêm sản phẩm:", error);

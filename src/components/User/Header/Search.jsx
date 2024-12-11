@@ -1,16 +1,21 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import logo from "../../../assets/images/logo.png";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { useSelector } from 'react-redux';
 import { setCartItems } from '../../../../redux/slices/cartslice';
+import { debounce } from "lodash";
 
 const Search = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [user, setUser] = useState(null);
   const dispatch = useDispatch();
+  const [searchTerm, setSearchTerm] = useState(""); // Quản lý giá trị nhập vào
+  const [searchResults, setSearchResults] = useState([]); // Quản lý kết quả tìm kiếm
+  const [loading, setLoading] = useState(false); // Quản lý trạng thái loading
+  const searchResultsRef = useRef(null); // Sử dụng ref để tham chiếu đến kết quả tìm kiếm
 
   useEffect(() => {
     const token = document.cookie
@@ -69,6 +74,24 @@ const Search = () => {
   const itemCount = cartDetail ? cartDetail.length : 0;
   console.log(itemCount);
 
+  // Hàm tìm kiếm đã debounce
+  const debouncedSearch = debounce(async (term) => {
+    if (!term.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setLoading(true); // Bắt đầu loading
+    try {
+      const response = await axios.get(`http://localhost:8000/product/search?name=${term.trim()}`);
+      setSearchResults(response.data);
+    } catch (error) {
+      console.error("Error fetching search results:", error.message);
+      setSearchResults([]);
+    } finally {
+      setLoading(false); // Dừng loading
+    }
+  }, 500); // Chờ 500ms trước khi gửi yêu cầu tìm kiếm
+
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
     setIsLoggedIn(false);
@@ -80,26 +103,82 @@ const Search = () => {
   };
 
   useEffect(() => {
-    const onScroll = () => {
-      const search = document.querySelector(".search");
-      if (search) {
-        search.classList.toggle("active", window.scrollY > 100);
+    debouncedSearch(searchTerm);
+  }, [searchTerm]);
+
+  // Hàm để ẩn kết quả tìm kiếm khi nhấn ngoài
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchResultsRef.current && !searchResultsRef.current.contains(e.target)) {
+        setSearchResults([]);
       }
     };
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
+    document.addEventListener("click", handleClickOutside);
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
   }, []);
 
+  // Reset searchTerm khi quay lại trang chủ hoặc sau khi tìm kiếm
+  const resetSearchTerm = () => {
+    setSearchTerm("");  // Reset giá trị tìm kiếm khi quay lại
+  };
+
   return (
-    <section className="search" >
+    <section className="search relative">
       <div className="container c_flex">
-        <Link className="logo width" to="/">
+        <Link className="logo width" to="/" onClick={resetSearchTerm}>
           <img src={logo} alt="Logo" />
         </Link>
 
-        <div className="search-box f_flex">
+        {/* <div className="search-box f_flex">
           <input type="text" placeholder="Tìm kiếm sản phẩm" />
           <i className="fa fa-search"></i>
+        </div> */}
+        <div className="search-box f_flex relative w-full">
+          <input
+            type="text"
+            placeholder="Tìm kiếm sản phẩm"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật giá trị nhập
+            className=" p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {/* Kết quả tìm kiếm */}
+          {searchTerm && (
+            <div
+              ref={searchResultsRef}
+              className="search-results-container absolute w-full bg-white shadow-md rounded-lg mt-14 max-h-96 overflow-y-auto z-50"
+            >
+              {loading ? (
+                <div className="p-4 text-center text-gray-500">Đang tìm kiếm...</div>
+              ) : searchResults.length > 0 ? (
+                searchResults.map((product) => (
+                  <div key={product.product_id} className="search-result-item flex items-center gap-4 p-3 border-b last:border-b-0">
+                    <Link to={`/product/${product.product_id}`} className="flex items-center w-full" onClick={resetSearchTerm}>
+                      <img
+                        src={`http://localhost:8000/img/${product.detail[0]?.productImage?.img_url}`}
+                        alt={product.product_name}
+                        className="w-24 h-28 object-cover rounded-md"
+                      />
+                      <div className="product-details flex flex-col justify-between ml-4">
+                        <h1 className="w-full text-xl">{product.product_name}</h1>
+                        <div className="product-price text-sm mt-2">
+                          <span className="text-red-500 font-bold">{product.price}₫</span>
+                          {product.original_price && (
+                            <span className="text-gray-500 line-through ml-2">
+                              {product.original_price}₫
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <div className="p-4 text-center text-gray-500">Không có sản phẩm nào.</div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="icon f_flex width">

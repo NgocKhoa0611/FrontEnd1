@@ -5,10 +5,10 @@ import './Products.css';
 
 function ProductList() {
   const [products, setProducts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchKeyword, setSearchKeyword] = useState("");
   const [sortOrder, setSortOrder] = useState('asc');
-  const productsPerPage = 10; // Số sản phẩm trên mỗi trang
+  const productsPerPage = 5;
 
   const fetchProduct = async () => {
     try {
@@ -22,8 +22,10 @@ function ProductList() {
   };
 
   const filteredProducts = products.filter(product =>
-    product.product_name.toLowerCase().includes(searchTerm.toLowerCase())
+    product.product_id.toString().includes(searchKeyword) ||
+    product.product_name.toLowerCase().includes(searchKeyword.toLowerCase())
   );
+
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     if (sortOrder === 'asc') {
       return a.product_id - b.product_id;
@@ -56,7 +58,7 @@ function ProductList() {
 
   const hideProduct = async (product_id, is_hidden) => {
     const newStatus = is_hidden ? "show" : "hide";
-    if (window.confirm(`Bạn có chắc chắn muốn ${newStatus} danh mục này?`)) {
+    if (window.confirm(`Bạn có chắc chắn muốn ${newStatus} sản phẩm này?`)) {
       try {
         const response = await axios.patch(`http://localhost:8000/product/${newStatus}/${product_id}`, {}, {
           headers: {
@@ -81,22 +83,15 @@ function ProductList() {
 
   return (
     <div className="products-table">
-      <h3 className="title-page">Danh sách sản phẩm</h3>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <Link to={`add-product`} id="mb-2" className="add-btn-products">Thêm sản phẩm</Link>
+      <h1 className="title-page-products">Danh sách sản phẩm</h1>
+      <div className="search-flex-products">
+        <Link to={`add-product`} className="add-btn-products">Thêm sản phẩm</Link>
         <form className="d-flex" role="search" onSubmit={(e) => e.preventDefault()}>
-          <input
-            className="form-control-search-products"
-            type="search"
-            placeholder="Tìm kiếm sản phẩm..."
-            aria-label="Search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <input className="form-control-search-products" type="search" placeholder="Tìm kiếm theo ID hoặc Tên sản phẩm..." aria-label="Search" value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} />
           <button className="search-btn-products" type="submit">Tìm kiếm</button>
         </form>
       </div>
-      <table id="example" className="table table-hover">
+      <table id="example" className="table-products">
         <thead>
           <tr>
             <th style={{ width: '10%' }}>
@@ -105,10 +100,10 @@ function ProductList() {
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </button>
             </th>
-            <th>Tên sản phẩm</th>
-            <th style={{ width: '10%' }}>Giá</th>
-            <th style={{ width: '10%' }}> Giá khuyến mãi</th>
-            <th>Công cụ</th>
+            <th style={{ width: '25%' }}>Tên sản phẩm</th>
+            <th style={{ width: '15%' }}>Giá</th>
+            <th style={{ width: '15%' }}>Giá khuyến mãi</th>
+            <th style={{ width: '25%' }}>Công cụ</th>
           </tr>
         </thead>
         <tbody>
@@ -119,15 +114,9 @@ function ProductList() {
               <td>{product.price}</td>
               <td>{product.price_promotion}</td>
               <td>
-                <Link to={`/product/${product.product_id}`} className="detail-btn">
-                  Chi tiết
-                </Link>
-
-                <Link to={`/product/edit-product/${product.product_id}`} className="edit-btn"> Sửa</Link>
-                <button
-                  className={`hide-btn-products ${product.is_hidden ? 'show-text' : ''}`}
-                  onClick={() => hideProduct(product.product_id, product.is_hidden)}
-                >
+                <Link to={`/admin/productdetaillist/${product.product_id}`} className="detail-btn">Chi tiết</Link>
+                <Link to={`/admin/productlist/edit-product/${product.product_id}`} className="edit-btn-prod"> Sửa</Link>
+                <button className={`hide-btn-products ${product.is_hidden ? 'show-text' : ''}`} onClick={() => hideProduct(product.product_id, product.is_hidden)}>
                   {product.is_hidden ? "Hiện" : "Ẩn"}
                 </button>
               </td>
@@ -135,8 +124,6 @@ function ProductList() {
           ))}
         </tbody>
       </table>
-
-      {/* Pagination controls */}
       <div className="pagination">
         <button onClick={handlePrevPage} disabled={currentPage === 1}>Trang trước</button>
         <span>Trang {currentPage} / {totalPages}</span>

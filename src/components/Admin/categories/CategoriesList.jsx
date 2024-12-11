@@ -6,7 +6,9 @@ import axios from 'axios';
 function CategoriesList() {
     const [categories, setCategories] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const categoriesPerPage = 5; // Số lượng danh mục mỗi trang
+    const [searchKeyword, setSearchKeyword] = useState("");
+    const [sortOrder, setSortOrder] = useState('asc');
+    const categoriesPerPage = 5;
 
     const fetchCategories = async () => {
         try {
@@ -41,12 +43,24 @@ function CategoriesList() {
         }
     };
 
-    // Phân trang logic
+    const filteredCategories = categories.filter(category =>
+        category.category_id.toString().includes(searchKeyword) ||
+        category.category_name.toLowerCase().includes(searchKeyword.toLowerCase())
+    );
+
+    const sortedProducts = [...filteredCategories].sort((a, b) => {
+        if (sortOrder === 'asc') {
+            return a.category_id - b.category_id;
+        } else {
+            return b.category_id - a.category_id;
+        }
+    })
+
     const indexOfLastCategory = currentPage * categoriesPerPage;
     const indexOfFirstCategory = indexOfLastCategory - categoriesPerPage;
-    const currentCategories = categories.slice(indexOfFirstCategory, indexOfLastCategory);
+    const currentCategories = sortedProducts.slice(indexOfFirstCategory, indexOfLastCategory);
 
-    const totalPages = Math.ceil(categories.length / categoriesPerPage);
+    const totalPages = Math.ceil(sortedProducts.length / categoriesPerPage);
 
     const handleNextPage = () => {
         if (currentPage < totalPages) {
@@ -60,60 +74,58 @@ function CategoriesList() {
         }
     };
 
+    const handleSortById = () => {
+        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    };
+
     useEffect(() => {
         fetchCategories();
     }, []);
 
     return (
         <div className="categories-table">
-            <h3 className="title-page">Danh sách danh mục</h3>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <Link to={`add-categories`} href="/#" id="mb-2" className="add-btn-categories">Thêm danh mục</Link>
-                <form className="d-flex" role="search">
-                    <input className="form-control-search-categories" type="search" placeholder="Tìm kiếm danh mục..." aria-label="Search" />
-                    <button className="search-btn-catgories" type="submit">Tìm kiếm</button>
+            <h1 className="title-page-cate">Danh sách danh mục</h1>
+            <div className="search-flex-cate">
+                <Link to={`add-categories`} href="/#" className="add-btn-categories">Thêm danh mục</Link>
+                <form className="d-flex" role="search" onSubmit={(e) => e.preventDefault()}>
+                    <input className="form-control-search-categories" type="search" placeholder="Tìm kiếm theo ID hoặc Tên danh mục..." aria-label="Search" value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} />
+                    <button className="search-btn-catgories" type="button">Tìm kiếm</button>
                 </form>
             </div>
-            <table id="example" className="table table-hover">
+            <table id="example" className="table-cate">
                 <thead>
                     <tr>
-                        <th>ID danh mục</th>
+                        <th style={{ width: '10%' }}>
+                            <span>ID</span>
+                            <button className="sort-btn" onClick={handleSortById}>
+                                {sortOrder === 'asc' ? '↑' : '↓'}
+                            </button>
+                        </th>
                         <th>ID danh mục cha</th>
                         <th>Tên danh mục</th>
                         <th>Công cụ</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {currentCategories.map((category) => (
-                        <tr key={category.category_id}>
-                            <td>{category.category_id}</td>
-                            <td>{category.category_parent_id}</td>
-                            <td>{category.category_name}</td>
+                    {currentCategories.map((categories) => (
+                        <tr key={categories.category_id}>
+                            <td>{categories.category_id}</td>
+                            <td>{categories.category_parent_id}</td>
+                            <td>{categories.category_name}</td>
                             <td>
-                                <Link to={`/categories/edit-categories/${category.category_id}`} className="edit-btn">Sửa</Link>
-                                <button
-                                    className={`hide-btn-categories ${category.is_hidden ? 'show-text' : ''}`}
-                                    onClick={() => hideCategory(category.category_id, category.is_hidden)}
-                                >
-                                    {category.is_hidden ? "Hiện" : "Ẩn"}
+                                <Link to={`/admin/categorieslist/edit-categories/${categories.category_id}`} className="edit-btn-cate">Sửa</Link>
+                                <button className={`hide-btn-categories ${categories.is_hidden ? 'show-text' : ''}`} onClick={() => hideCategory(categories.category_id, categories.is_hidden)}>
+                                    {categories.is_hidden ? "Hiện" : "Ẩn"}
                                 </button>
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-
-            {/* Pagination Controls */}
             <div className="pagination">
-                <button onClick={handlePrevPage} disabled={currentPage === 1} className="pagination-btn">
-                    Trang trước
-                </button>
-                <span className="pagination-info">
-                    Trang {currentPage} / {totalPages}
-                </span>
-                <button onClick={handleNextPage} disabled={currentPage === totalPages} className="pagination-btn">
-                    Trang sau
-                </button>
+                <button onClick={handlePrevPage} disabled={currentPage === 1} className="pagination-btn">Trang trước </button>
+                <span className="pagination-info">Trang {currentPage} / {totalPages}</span>
+                <button onClick={handleNextPage} disabled={currentPage === totalPages} className="pagination-btn">Trang sau</button>
             </div>
         </div>
     );

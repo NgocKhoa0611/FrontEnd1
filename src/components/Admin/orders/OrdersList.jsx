@@ -126,7 +126,7 @@ function OrderList() {
                                         Xác nhận
                                     </button>
                                 ) : (
-                                    <Link to={`/orders/edit/${order.orders_id}`} className="edit-btn">Cập nhật</Link>
+                                    <Link to={`admin/edit/${order.orders_id}`} className="edit-btn">Cập nhật</Link>
                                 )}
                                 {order.order_status === "Chờ xử lý" ? (
                                     <button

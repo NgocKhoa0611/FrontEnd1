@@ -18,7 +18,7 @@ const Products = () => {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000000);
   const [minSliderValue, setMinSliderValue] = useState(0);
-  const [maxSliderValue, setMaxSliderValue] = useState(1000000);
+  const [maxSliderValue, setMaxSliderValue] = useState(10000000);
   const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
@@ -27,8 +27,6 @@ const Products = () => {
         const [productRes, categoryRes, colorRes, sizeRes] = await Promise.all([
           axios.get("http://localhost:8000/product"),
           axios.get("http://localhost:8000/category"),
-          axios.get("http://localhost:8000/detail/color"),
-          axios.get("http://localhost:8000/detail/size"),
         ]);
 
         setProducts(productRes.data);
@@ -124,82 +122,24 @@ const Products = () => {
           {/* Bộ lọc theo khoảng giá */}
           <div className="price-filter mb-4">
             <label>Khoảng Giá:</label>
-            <div className="flex justify-between mb-2">
-              <input
-                type="number"
-                value={minPrice}
-                onChange={handleMinPriceChange}
-                placeholder="Giá Tối Thiểu"
-                className="border p-2 w-full mr-2"
-              />
-              <input
-                type="number"
-                value={maxPrice}
-                onChange={handleMaxPriceChange}
-                placeholder="Giá Lớn Nhất"
-                className="border p-2 w-full"
-              />
-            </div>
             <div className="flex items-center">
               <input
                 type="range"
                 min="0"
-                max="1000000"
-                value={minSliderValue}
-                onChange={handleMinSliderChange}
-                className="w-1/2 mr-2"
-              />
-              <input
-                type="range"
-                min="0"
-                max="1000000"
-                value={maxSliderValue}
-                onChange={handleMaxSliderChange}
-                className="w-1/2"
+                max="10000000"
+                value={minPrice}
+                onChange={(e) => {
+                  setMinPrice(Number(e.target.value));
+                  setMaxPrice(Math.max(Number(e.target.value), maxPrice));
+                  setCurrentPage(1);
+                }}
+                className="w-full"
               />
             </div>
-          </div>
-
-          {/* Bộ lọc theo màu */}
-          <div className="color-filter mb-4">
-            <label htmlFor="color">Màu sắc:</label>
-            <select
-              id="color"
-              value={selectedColor}
-              onChange={(e) => {
-                setSelectedColor(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="border p-2 w-full"
-            >
-              <option value="">Tất cả</option>
-              {colors.map((color) => (
-                <option key={color.color_id} value={color.color_id}>
-                  {color.color_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Bộ lọc theo kích cỡ */}
-          <div className="size-filter mb-4">
-            <label htmlFor="size">Kích cỡ:</label>
-            <select
-              id="size"
-              value={selectedSize}
-              onChange={(e) => {
-                setSelectedSize(Number(e.target.value));  // Ensure it's a number
-                setCurrentPage(1);
-              }}
-              className="border p-2 w-full"
-            >
-              <option value="">Tất cả</option>
-              {sizes.map((size) => (
-                <option key={size.size_id} value={size.size_id}>
-                  {size.size_name}
-                </option>
-              ))}
-            </select>
+            <div className="flex justify-between text-sm text-gray-500">
+              <span>{minPrice.toLocaleString('vi-VN')} VND</span>
+              <span>{maxPrice.toLocaleString('vi-VN')} VND</span>
+            </div>
           </div>
         </div>
 

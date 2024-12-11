@@ -3,8 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom'; // Import Link từ React Router
 import logo from '../assets/images/logo1.png';
 import { useNavigate } from 'react-router-dom';
-
-
+import './MainContent.css';
 
 function Sidebar() {
   const navigate = useNavigate();
@@ -20,10 +19,10 @@ function Sidebar() {
       <nav>
         <ul>
           <li><Link to={`/admin`}>Dashboards</Link></li>
-          <li><Link to={`/admin/categories`}>Quản lí danh mục</Link></li>
-          <li><Link to={`/admin/product`}>Quản lí sản phẩm</Link></li>
-          <li><Link to={`/admin/orders`}>Quản lí đơn hàng</Link></li>
-          <li><Link to={`/admin/users`}>Quản lí người dùng</Link></li>
+          <li><Link to={`/admin/categorieslist`}>Quản lí danh mục</Link></li>
+          <li><Link to={`/admin/productlist`}>Quản lí sản phẩm</Link></li>
+          <li><Link to={`/admin/orderslist`}>Quản lí đơn hàng</Link></li>
+          <li><Link to={`/admin/userslist`}>Quản lí người dùng</Link></li>
         </ul>
       </nav>
       <button className="logout-btn">Đăng xuất</button>

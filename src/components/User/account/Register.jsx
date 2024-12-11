@@ -11,11 +11,22 @@ const Register = () => {
 
   const formik = useFormik({
     initialValues: {
+      name: "",
+      phone: "",
+      address: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
     validationSchema: Yup.object({
+      name: Yup.string()
+        .min(2, "Tên phải có ít nhất 2 ký tự")
+        .required("Vui lòng nhập tên"),
+      phone: Yup.string()
+        .matches(/^\d{10,11}$/, "Số điện thoại không hợp lệ")
+        .required("Vui lòng nhập số điện thoại"),
+      address: Yup.string()
+        .required("Vui lòng nhập địa chỉ"),
       email: Yup.string()
         .email("Email không hợp lệ")
         .required("Vui lòng nhập email"),
@@ -29,6 +40,9 @@ const Register = () => {
     onSubmit: async (values) => {
       try {
         const response = await axios.post("http://localhost:8000/auth/register", {
+          name: values.name,
+          phone: values.phone,
+          address: values.address,
           email: values.email,
           password: values.password,
         });
@@ -70,7 +84,58 @@ const Register = () => {
                   {error}
                 </div>
               )}
-              {/* Form fields */}
+              {/* Tên */}
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  Tên
+                </label>
+                <input
+                  placeholder="Tên"
+                  id="name"
+                  type="text"
+                  {...formik.getFieldProps("name")}
+                  className="block w-full rounded-md border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+                {formik.touched.name && formik.errors.name ? (
+                  <div className="text-sm text-red-600">{formik.errors.name}</div>
+                ) : null}
+              </div>
+
+              {/* Số điện thoại */}
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  Số điện thoại
+                </label>
+                <input
+                  placeholder="Số điện thoại"
+                  id="phone"
+                  type="text"
+                  {...formik.getFieldProps("phone")}
+                  className="block w-full rounded-md border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+                {formik.touched.phone && formik.errors.phone ? (
+                  <div className="text-sm text-red-600">{formik.errors.phone}</div>
+                ) : null}
+              </div>
+
+              {/* Địa chỉ */}
+              <div>
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                  Địa chỉ
+                </label>
+                <input
+                  placeholder="Địa chỉ"
+                  id="address"
+                  type="text"
+                  {...formik.getFieldProps("address")}
+                  className="block w-full rounded-md border px-3 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                />
+                {formik.touched.address && formik.errors.address ? (
+                  <div className="text-sm text-red-600">{formik.errors.address}</div>
+                ) : null}
+              </div>
+
+              {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email
@@ -87,6 +152,7 @@ const Register = () => {
                 ) : null}
               </div>
 
+              {/* Mật khẩu */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Mật khẩu
@@ -103,6 +169,7 @@ const Register = () => {
                 ) : null}
               </div>
 
+              {/* Mật khẩu xác nhận */}
               <div>
                 <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
                   Mật khẩu xác nhận
@@ -146,4 +213,3 @@ const Register = () => {
 };
 
 export default Register;
-

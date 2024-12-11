@@ -14,6 +14,8 @@ import Category from "../pages/User/Category.jsx";
 import Checkout from "../pages/User/Checkout.jsx";
 import Account from "../pages/User/account.jsx";
 import CategoryParent from "../components/User/Category/parentID.jsx";
+import ForgotPassword from "../components/User/account/ForgotPassword.jsx";
+import ResetPassword from "../components/User/account/ResetPassword.jsx";
 
 const UserRoutes = () => {
     return (
@@ -23,6 +25,8 @@ const UserRoutes = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/signup" element={<Register />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/contact" element={<Contact />} />

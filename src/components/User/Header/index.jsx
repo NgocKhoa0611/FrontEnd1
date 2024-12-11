@@ -5,9 +5,11 @@ import Navbar from "./Navbar"
 const Header = () => {
   return (
     <>
-      <Head />
-      <Search/>
-      <Navbar />
+      <section className="sticky top-0 z-10 bg-white shadow-md">
+        <Head />
+        <Search />
+        <Navbar />
+      </section >
     </>
   )
 }

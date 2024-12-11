@@ -67,10 +67,10 @@ const Checkout = () => {
   }, [orderSuccess]);
 
   const handleChange = (event) => {
-    const { value } = event.target;
+    const { name, value } = event.target;
     setFormData((prevState) => ({
       ...prevState,
-      paymentMethod: value,
+      [name]: value,
     }));
   };
 
@@ -82,6 +82,7 @@ const Checkout = () => {
       const orderData = {
         total_price: cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
         payment_method: formData.paymentMethod,
+        shipping_address: formData.address, // Thêm địa chỉ nhận hàng
         order_status: 'Chờ xử lý', // Default status
         order_details: cartItems.map((item) => ({
           product_detail_id: item.product_detail_id,
@@ -150,6 +151,7 @@ const Checkout = () => {
                 required
                 placeholder="Email"
                 className="form-input"
+                readOnly
               />
             </div>
             <div className="form-group">
@@ -161,6 +163,7 @@ const Checkout = () => {
                 required
                 placeholder="Họ và tên"
                 className="form-input"
+                readOnly
               />
             </div>
             <div className="form-group">
@@ -172,6 +175,7 @@ const Checkout = () => {
                 required
                 placeholder="Số điện thoại"
                 className="form-input"
+                readOnly
               />
             </div>
             <div className="form-group">

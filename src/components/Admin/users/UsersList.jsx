@@ -1,46 +1,27 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios'; // Import axios
 import './Users.css';
 
 const UserTable = () => {
   const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchKeyword, setSearchKeyword] = useState(""); // Trạng thái lưu từ khóa tìm kiếm
+  const [sortOrder, setSortOrder] = useState('asc');
   const usersPerPage = 5;
 
-  const fetchUsers = () => {
-    fetch('http://localhost:8000/user')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Máy chủ trả về mã lỗi ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-      })
-      .then(data => {
-        setUsers(data);
-      })
-      .catch(error => {
-        console.error("Có lỗi khi lấy danh sách người dùng!", error);
-      });
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get('http://localhost:8000/user');
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Có lỗi khi lấy danh sách người dùng!", error);
+    }
   };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const handleDeleteUser = async (userId) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này không?")) {
       try {
-        const response = await fetch(`http://localhost:8000/user/${userId}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            // 'Authorization': 'Bearer your_token_here', // Thêm nếu cần
-          },
-        });
-        if (!response.ok) {
-          const errorMessage = `Máy chủ trả về mã lỗi ${response.status}: ${response.statusText}`;
-          throw new Error(errorMessage);
-        }
-        // Cập nhật danh sách người dùng sau khi xóa
+        await axios.delete(`http://localhost:8000/user/${userId}`);
         setUsers(prevUsers => prevUsers.filter(user => user.user_id !== userId));
         alert("Xóa người dùng thành công!");
       } catch (error) {
@@ -50,12 +31,30 @@ const UserTable = () => {
     }
   };
 
+  // Lọc người dùng dựa trên từ khóa tìm kiếm
+  const filteredUsers = users.filter(user => {
+    const userId = user?.user_id?.toString().toLowerCase() || ""; // Kiểm tra user_id an toàn
+    const userName = user?.name?.toLowerCase() || ""; // Kiểm tra name an toàn
+    return userId.includes(searchKeyword.toLowerCase()) || userName.includes(searchKeyword.toLowerCase());
+  });
+
+
+  const sortedUsers = [...filteredUsers].sort((a, b) => {
+    if (sortOrder === 'asc') {
+      return a.user_id - b.user_id;
+    } else {
+      return b.user_id - a.user_id;
+    }
+  });
+
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+  const currentUsers = sortedUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  const totalPages = Math.ceil(sortedUsers.length / usersPerPage);
 
   const handleNextPage = () => {
-    if (currentPage < Math.ceil(users.length / usersPerPage)) {
+    if (currentPage < totalPages) {
       setCurrentPage(prevPage => prevPage + 1);
     }
   };
@@ -66,13 +65,39 @@ const UserTable = () => {
     }
   };
 
+  const handleSortById = () => {
+    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   return (
     <div className="users-table">
-      <h2>Danh sách người dùng</h2>
-      <table id="example" className="table table-hover">
+      <h1 className="title-page-users">Danh sách người dùng</h1>
+      <div className="search-flex-users">
+        <form className="d-flex" role="search" onSubmit={(e) => e.preventDefault()}>
+          <input
+            className="form-control-search-users"
+            type="search"
+            placeholder="Tìm kiếm theo ID hoặc Tên người dùng..."
+            aria-label="Search"
+            value={searchKeyword} // Gắn giá trị của từ khóa tìm kiếm
+            onChange={(e) => setSearchKeyword(e.target.value)} // Cập nhật trạng thái từ khóa tìm kiếm
+          />
+          <button className="search-btn-users" type="button">Tìm kiếm</button>
+        </form>
+      </div>
+      <table id="example" className="table-users">
         <thead>
           <tr>
-            <th>ID người dùng</th>
+            <th style={{ width: '10%' }}>
+              <span>ID</span>
+              <button className="sort-btn" onClick={handleSortById}>
+                {sortOrder === 'asc' ? '↑' : '↓'}
+              </button>
+            </th>
             <th>Tên người dùng</th>
             <th>Ảnh tài khoản</th>
             <th>Email</th>
@@ -101,8 +126,8 @@ const UserTable = () => {
       </table>
       <div className="pagination">
         <button onClick={handlePrevPage} disabled={currentPage === 1}>Trang trước</button>
-        <span>Trang {currentPage} / {Math.ceil(users.length / usersPerPage)}</span>
-        <button onClick={handleNextPage} disabled={currentPage === Math.ceil(users.length / usersPerPage)}>Trang sau</button>
+        <span>Trang {currentPage} / {totalPages}</span>
+        <button onClick={handleNextPage} disabled={currentPage === totalPages}>Trang sau</button>
       </div>
     </div>
   );
