@@ -1,31 +1,16 @@
-import { Route, Routes } from "react-router-dom";
-import Header from "./pages/Header.jsx";
-import Home from "./pages/Home.jsx";
-import Footer from "./pages/Footer.jsx";
-import Cart from "./pages/Cart.jsx";
-import Login from "./pages/Login.jsx";
-import Register from "./pages/Register.jsx";
-import ProductDetail from "./pages/ProductDetail.jsx";
-import NotFound from "./pages/NotFound.jsx";
-import Contact from "./pages/Contact.jsx";
-import Category from "./pages/Category.jsx";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import AdminRoutes from "./routes/AdminRoutes";
+import UserRoutes from "./routes/UserRoutes";
+import PrivateRoute from "./routes/PrivateRoute"; // Import PrivateRoute
 
 function App() {
   return (
-    <>
-      <Header />
+    <Router>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Register />} />
-        <Route path="/product/:id" element={<ProductDetail />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/category/:id" element={<Category />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/admin/*" element={<PrivateRoute element={<AdminRoutes />} />} />
+        <Route path="/*" element={<UserRoutes />} />
       </Routes>
-      <Footer />
-    </>
+    </Router>
   );
 }
 
