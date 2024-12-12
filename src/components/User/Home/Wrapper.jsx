@@ -23,23 +23,26 @@ const Wrapper = () => {
   ];
 
   return (
-    <>
-      <section className="wrapper background">
-        <div className="container grid2">
-          {data.map((val, index) => {
-            return (
-              <div className="product" key={index}>
-                <div className="img icon-circle">
-                  <i>{val.cover}</i>
+    <section className="py-12 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {data.map((val, index) => (
+            <div 
+              key={index}
+              className="bg-white p-6 rounded-lg shadow-md text-center transition-transform hover:scale-105"
+            >
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-2xl">
+                  {val.cover}
                 </div>
-                <h3>{val.title}</h3>
-                <p>{val.decs}</p>
               </div>
-            );
-          })}
+              <h3 className="text-lg font-semibold mb-2">{val.title}</h3>
+              <p className="text-gray-600 text-sm">{val.decs}</p>
+            </div>
+          ))}
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 };
 

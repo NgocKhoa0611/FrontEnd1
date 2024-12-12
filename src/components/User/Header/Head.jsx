@@ -1,17 +1,20 @@
+
 const Head = () => {
   return (
-    <>
-      <section className="head">
-        <div className="container d_flex">
-          <div className="left row">
-            <i className="fa fa-phone"></i>
-            <label> +88012 3456 7894</label>
-            <i className="fa fa-envelope"></i>
-            <label> fashionverse3@gmail.com</label>
+    <section className="bg-gray-800 text-white py-2">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-col sm:flex-row justify-start items-center gap-2 sm:gap-6">
+          <div className="flex items-center gap-2">
+            <i className="fa fa-phone text-sm"></i>
+            <span className="text-sm">+88012 3456 7894</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <i className="fa fa-envelope text-sm"></i>
+            <span className="text-sm">fashionverse3@gmail.com</span>
           </div>
         </div>
-      </section>
-    </>
+      </div>
+    </section>
   );
 };
 

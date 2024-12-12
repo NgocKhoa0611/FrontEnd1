@@ -40,8 +40,6 @@ const Account = () => {
       });
 
       setUser(response.data);
-      console.log(response.data);
-
       setFormData({
         name: response.data.name || "",
         email: response.data.email || "",
@@ -52,6 +50,7 @@ const Account = () => {
       console.error("Error fetching user:", error);
     }
   };
+
   const fetchOrderHistory = async () => {
     try {
       const token = document.cookie
@@ -63,22 +62,20 @@ const Account = () => {
 
       const payload = JSON.parse(atob(token.split('.')[1]));
       const userId = payload.id;
-      const response = await axios.get(`http://localhost:8000/orders/${userId}`,
-        { withCredentials: true },
-      );
+      const response = await axios.get(`http://localhost:8000/orders/${userId}`, { withCredentials: true });
       setOrders(response.data.order);
-      console.log(response.data.order);
-
     } catch (error) {
       console.error("Error fetching orders:", error);
     }
   };
+
   const handleChangeAvatar = (e) => {
     const file = e.target.files[0];
     if (file) {
       setNewAvatar(file);
     }
   };
+
   const handleInputChange = (e) => {
     const { id, value } = e.target;
     setFormData(prevData => ({
@@ -86,6 +83,7 @@ const Account = () => {
       [id]: value,
     }));
   };
+
   const handleUpdateUser = async () => {
     try {
       const token = document.cookie.split("; ").find(row => row.startsWith("token="))?.split("=")[1];
@@ -110,6 +108,7 @@ const Account = () => {
       console.error("Error updating user:", error);
     }
   };
+
   const cancelOrder = async (orderId) => {
     const order = orders.find(order => order.orders_id === orderId);
     if (order && order.order_status !== 'Chờ xử lý') {
@@ -135,11 +134,11 @@ const Account = () => {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen">
-      <div className="max-w-7xl mx-auto mt-6 bg-white rounded-lg shadow-lg">
-        <div className="flex">
+    <div className="bg-gray-100 min-h-screen py-6">
+      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-lg">
+        <div className="flex flex-col lg:flex-row">
           {/* Sidebar */}
-          <div className="w-1/4 border-r p-6 bg-gray-50">
+          <div className="w-full lg:w-1/4 border-r p-6 bg-gray-50">
             <div className="flex flex-col items-center mb-6">
               <input
                 type="file"
@@ -162,7 +161,7 @@ const Account = () => {
               <li>
                 <button
                   onClick={() => setSelectedTab("account")}
-                  className={`text-blue-600 font-semibold hover:text-blue-700 p-2 rounded-md transition duration-300 
+                  className={`text-blue-600 font-semibold hover:text-blue-700 p-2 rounded-md transition duration-300 w-full
                     ${selectedTab === "account" ? "bg-blue-100 text-blue-700" : "text-gray-600"}`}
                 >
                   Thông tin tài khoản
@@ -171,7 +170,7 @@ const Account = () => {
               <li>
                 <button
                   onClick={() => setSelectedTab("orders")}
-                  className={`text-blue-600 font-semibold hover:text-blue-700 p-2 rounded-md transition duration-300 
+                  className={`text-blue-600 font-semibold hover:text-blue-700 p-2 rounded-md transition duration-300 w-full
                     ${selectedTab === "orders" ? "bg-blue-100 text-blue-700" : "text-gray-600"}`}
                 >
                   Lịch sử đơn hàng
@@ -181,7 +180,7 @@ const Account = () => {
           </div>
 
           {/* Main Content */}
-          <div className="w-3/4 p-8">
+          <div className="w-full lg:w-3/4 p-8">
             {/* Thông tin tài khoản */}
             {selectedTab === "account" && (
               <div id="account-info" className="transition-all duration-300 ease-in-out opacity-100">
@@ -244,70 +243,69 @@ const Account = () => {
             {selectedTab === "orders" && (
               <div id="order-history" className="space-y-6">
                 <h2 className="text-xl font-bold text-gray-800">Lịch sử đơn hàng</h2>
-                <table className="w-full table-auto">
-                  <thead>
-                    <tr className="text-left">
-                      <th className="px-2 py-2 font-semibold text-sm text-gray-700">Mã Đơn Hàng</th>
-                      <th className="px-4 py-2 font-semibold text-sm text-gray-700">Ngày Đặt</th>
-                      <th className="px-4 py-2 font-semibold text-sm text-gray-700">Trạng Thái</th>
-                      <th className="px-4 py-2 font-semibold text-sm text-gray-700">Hình thức thanh toán</th>
-                      <th className="px-4 py-2 font-semibold text-sm text-gray-700">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.length > 0 ? (
-                      orders.map(order => (
-                        <tr key={order.orders_id} className="border-b">
-                          <td className="px-2 py-1 w-20">{order.orders_id}</td>
-                          <td className="px-2 py-1 w-25">
-                            {new Date(order.order_date).toLocaleString('vi-VN', {
-                              timeZone: 'UTC',
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              hour12: false,
-                            })}
-                          </td>
-                          <td className="px-4 py-2">{order.order_status}</td>
-                          <td className="px-4 py-2">{order.payment_method}</td>
-                          <td>
-                            {order.order_status === "Chờ xử lý" ? (
-                              <button
-                                className="cancel-btn text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
-                                onClick={() => cancelOrder(order.orders_id)}
-                              >
-                                Hủy đơn
-                              </button>
-                            ) : (
-                              <button
-                                className="cancel-btn text-gray-500 bg-gray-200 px-3 py-1 rounded cursor-not-allowed"
-                                disabled
-                              >
-                                Hủy đơn
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="3" className="text-center py-4">Không có đơn hàng nào.</td>
+                <div className="table-container">
+                  <table className="w-full table-auto">
+                    <thead>
+                      <tr className="text-left">
+                        <th className="px-2 py-2 font-semibold text-sm text-gray-700">Mã Đơn Hàng</th>
+                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">Ngày Đặt</th>
+                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">Trạng Thái</th>
+                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">Hình thức thanh toán</th>
+                        <th className="px-4 py-2 font-semibold text-sm text-gray-700">Thao tác</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {orders.length > 0 ? (
+                        orders.map(order => (
+                          <tr key={order.orders_id} className="border-b">
+                            <td className="px-2 py-1 w-20">{order.orders_id}</td>
+                            <td className="px-2 py-1 w-25">
+                              {new Date(order.order_date).toLocaleString('vi-VN', {
+                                timeZone: 'UTC',
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: false,
+                              })}
+                            </td>
+                            <td className="px-4 py-2">{order.order_status}</td>
+                            <td className="px-4 py-2">{order.payment_method}</td>
+                            <td>
+                              {order.order_status === "Chờ xử lý" ? (
+                                <button
+                                  className="cancel-btn text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
+                                  onClick={() => cancelOrder(order.orders_id)}
+                                >
+                                  Hủy đơn
+                                </button>
+                              ) : (
+                                <button
+                                  className="cancel-btn text-gray-500 bg-gray-200 px-3 py-1 rounded cursor-not-allowed"
+                                  disabled
+                                >
+                                  Hủy đơn
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="3" className="text-center py-4">Không có đơn hàng nào.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
-  )
+  );
 };
 
 export default Account;
-
-

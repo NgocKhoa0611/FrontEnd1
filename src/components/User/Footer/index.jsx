@@ -1,11 +1,12 @@
 const Footer = () => {
   return (
     <>
-      <footer>
-        <div className="container grid2">
+      <footer className="bg-gray-800 text-white py-8">
+        <div className="container mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 px-4">
+          {/* Box 1 */}
           <div className="box">
-            <h1>Fashionverse</h1>
-            <p>
+            <h1 className="text-3xl font-bold mb-4">Fashionverse</h1>
+            <p className="text-sm mb-4">
               Fashionverse – Thế giới thời trang dành cho bạn. Chúng tôi cam kết mang đến những sản phẩm chất lượng, phong cách, và dịch vụ tốt nhất dành cho khách hàng.
             </p>
             <div className="flex items-center space-x-4">
@@ -20,9 +21,10 @@ const Footer = () => {
             </div>
           </div>
 
+          {/* Box 2 */}
           <div className="box">
-            <h2>Về Chúng Tôi</h2>
-            <ul>
+            <h2 className="text-xl font-semibold mb-2">Về Chúng Tôi</h2>
+            <ul className="text-sm space-y-2">
               <li>Cơ hội nghề nghiệp</li>
               <li>Hệ thống cửa hàng</li>
               <li>Chính sách của chúng tôi</li>
@@ -30,9 +32,11 @@ const Footer = () => {
               <li>Chính sách bảo mật</li>
             </ul>
           </div>
+
+          {/* Box 3 */}
           <div className="box">
-            <h2>Hỗ Trợ Khách Hàng</h2>
-            <ul>
+            <h2 className="text-xl font-semibold mb-2">Hỗ Trợ Khách Hàng</h2>
+            <ul className="text-sm space-y-2">
               <li>Trung tâm trợ giúp</li>
               <li>Hướng dẫn mua hàng</li>
               <li>Theo dõi đơn hàng</li>
@@ -40,12 +44,12 @@ const Footer = () => {
               <li>Chính sách đổi trả</li>
             </ul>
           </div>
+
+          {/* Box 4 */}
           <div className="box">
-            <h2>Liên Hệ</h2>
-            <ul>
-              <li>
-                123 Quang Trung, P.10, Q. Gò Vấp, TP Hồ Chí Minh
-              </li>
+            <h2 className="text-xl font-semibold mb-2">Liên Hệ</h2>
+            <ul className="text-sm space-y-2">
+              <li>123 Quang Trung, P.10, Q. Gò Vấp, TP Hồ Chí Minh</li>
               <li>Email: fashionverse.support@gmail.com</li>
               <li>Điện thoại: +028 7303 1234</li>
             </ul>

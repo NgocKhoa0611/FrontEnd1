@@ -3,16 +3,20 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 
 const Navbar = () => {
-  const [MobileMenu, setMobileMenu] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categories, setCategories] = useState({});
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:8000/category")
-      .then((response) => {
-        const groupedCategories = response.data.reduce((acc, item) => {
+    const fetchData = async () => {
+      try {
+        const [categoriesResponse, productsResponse] = await Promise.all([
+          axios.get("http://localhost:8000/category"),
+          axios.get("http://localhost:8000/product")
+        ]);
+
+        const groupedCategories = categoriesResponse.data.reduce((acc, item) => {
           if (item.is_hidden) return acc;
           if (!acc[item.category_parent_id]) {
             acc[item.category_parent_id] = [];
@@ -23,63 +27,56 @@ const Navbar = () => {
           });
           return acc;
         }, {});
-        setCategories(groupedCategories);
 
+        setCategories(groupedCategories);
+        setProducts(productsResponse.data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching categories:", error);
-        setLoading(false);
-      });
-    // Fetch products
-    axios
-      .get("http://localhost:8000/product")
-      .then((response) => {
-        setProducts(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching products:", error);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchData();
   }, []);
 
   return (
-    <section className="navbar">
-      <div className="container flex justify-between items-center">
-        <div className="navlink z-40">
-          {loading ? (
-            <div>Đang tải...</div>
-          ) : (
-            <ul
-              className={`${MobileMenu ? "nav-links-MobileMenu" : "hidden md:flex"
-                } flex-col md:flex-row`}
-              onClick={() => setMobileMenu(false)}
+    <nav className="bg-white shadow-md">
+      <div className="container mx-auto px-4">
+        <div className="relative flex items-center justify-between h-16">
+          {/* Mobile menu button */}
+          <div className="md:hidden">
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="text-gray-700 hover:text-gray-900 focus:outline-none"
             >
-              <li className="m-0 block min-w-[90px] text-center">
-                <Link to="/">Trang chủ</Link>
-              </li>
-              <li className="relative group m-0 block min-w-[90px] text-center cursor-pointer">
-                <Link to="/products">Sản phẩm</Link>
-                <ul className="absolute top-12 left-0 mt-2 overflow-hidden hidden group-hover:block bg-white shadow-lg rounded-lg min-w-[150px]">
-                  {products.map((product, index) => (
-                    <li key={product.id || index} className="m-0">
-                      <Link
-                        to={`/products/${product.id}`}
-                        className="whitespace-nowrap text-left w-full block px-4 hover:bg-gray-200"
-                      >
-                        {product.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
+              {mobileMenuOpen ? (
+                <i className="fas fa-times text-xl"></i>
+              ) : (
+                <i className="fas fa-bars text-xl"></i>
+              )}
+            </button>
+          </div>
+
+          {/* Desktop Navigation */}
+          {!loading && (
+            <div className="hidden md:flex items-center space-x-8">
+              <Link to="/" className="text-gray-700 hover:text-blue-600">
+                Trang chủ
+              </Link>
+
+              <div className="relative group">
+                <Link to="/products" className="text-gray-700 hover:text-blue-600">
+                  Sản phẩm
+                </Link>
+              </div>
+
               {Object.keys(categories).map((parentId) => (
-                <li
-                  key={parentId}
-                  className="relative group m-0 block min-w-[90px] text-center cursor-pointer"
-                >
-                  <Link to={`/category/parent/${parentId}`} className="min-w-[50px]">
+                <div key={parentId} className="relative group">
+                  <Link
+                    to={`/category/parent/${parentId}`}
+                    className="text-gray-700 hover:text-blue-600"
+                  >
                     {parentId === "1"
                       ? "Áo"
                       : parentId === "2"
@@ -90,41 +87,92 @@ const Navbar = () => {
                             ? "Giày"
                             : "Khác"}
                   </Link>
-                  <ul className="absolute top-12 left-0 mt-2 overflow-hidden hidden group-hover:block bg-white shadow-lg rounded-lg min-w-[150px]">
+                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                     {categories[parentId].map((category) => (
-                      <li key={category.id} className="m-0">
-                        <Link
-                          to={`/category/${category.id}`}
-                          className="whitespace-nowrap text-left w-full block px-4 hover:bg-gray-200"
-                        >
-                          {category.name}
-                        </Link>
-                      </li>
+                      <Link
+                        key={category.id}
+                        to={`/category/${category.id}`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        {category.name}
+                      </Link>
                     ))}
-                  </ul>
-                </li>
+                  </div>
+                </div>
               ))}
 
-              <li className="m-0 block min-w-[90px] text-center cursor-pointer">
-                <Link to="/contact">Liên hệ</Link>
-              </li>
-            </ul>
+              <Link to="/contact" className="text-gray-700 hover:text-blue-600">
+                Liên hệ
+              </Link>
+            </div>
           )}
-          <button
-            className="toggle md:hidden"
-            onClick={() => setMobileMenu(!MobileMenu)}
+
+          {/* Mobile Navigation */}
+          <div
+            className={`${
+              mobileMenuOpen ? "block" : "hidden"
+            } md:hidden absolute top-full left-0 right-0 bg-white shadow-lg z-50`}
           >
-            {MobileMenu ? (
-              <i className="fas fa-times close home-btn"></i>
-            ) : (
-              <i className="fas fa-bars open"></i>
-            )}
-          </button>
+            <div className="px-2 pt-2 pb-3 space-y-1">
+              <Link
+                to="/"
+                className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                Trang chủ
+              </Link>
+
+              <div className="relative">
+                <Link
+                  to="/products"
+                  className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                >
+                  Sản phẩm
+                </Link>
+              </div>
+
+              {Object.keys(categories).map((parentId) => (
+                <div key={parentId}>
+                  <Link
+                    to={`/category/parent/${parentId}`}
+                    className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+                  >
+                    {parentId === "1"
+                      ? "Áo"
+                      : parentId === "2"
+                        ? "Quần"
+                        : parentId === "3"
+                          ? "Phụ kiện"
+                          : parentId === "4"
+                            ? "Giày"
+                            : "Khác"}
+                  </Link>
+                  <div className="pl-4">
+                    {categories[parentId].map((category) => (
+                      <Link
+                        key={category.id}
+                        to={`/category/${category.id}`}
+                        className="block px-3 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+                      >
+                        {category.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              ))}
+
+              <Link
+                to="/contact"
+                className="block px-3 py-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              >
+                Liên hệ
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
+    </nav>
   );
-}
+};
 
 export default Navbar;
 
