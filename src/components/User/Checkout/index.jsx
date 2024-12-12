@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-// import { clearSelectedItems } from '../../../redux/slices/orderslice'; // Adjust the path based on your folder structure
+import { clearSelectedItems } from '../../../../redux/slices/orderslice'; // Adjust the path based on your folder structure
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './index.css';
@@ -112,7 +112,13 @@ const Checkout = () => {
         paymentMethod: 'Tiền mặt',
         payment_date: '',
       });
-
+      await Promise.all(
+        cartItems.map((item) =>
+          axios.delete(`http://localhost:8000/cart/${item.product_detail_id}`, {
+            withCredentials: true,
+          })
+        )
+      );
       dispatch(clearSelectedItems());
     } catch (error) {
       console.error('Error creating order:', error);
@@ -143,26 +149,19 @@ const Checkout = () => {
           <div className="checkout-info">
             <h2>Thông tin nhận hàng</h2>
             <div className="form-group">
-              <input
-                type="email"
-                name="email"
+              <input type="email" name="email" placeholder="Email" className="form-input"
                 value={formData.email}
                 onChange={handleChange}
                 required
-                placeholder="Email"
-                className="form-input"
                 readOnly
               />
             </div>
             <div className="form-group">
               <input
-                type="text"
-                name="fullName"
+                type="text" name="fullName" placeholder="Họ và tên" className="form-input"
                 value={formData.fullName}
                 onChange={handleChange}
                 required
-                placeholder="Họ và tên"
-                className="form-input"
                 readOnly
               />
             </div>

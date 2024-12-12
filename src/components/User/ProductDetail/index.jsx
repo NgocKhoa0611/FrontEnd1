@@ -65,7 +65,7 @@ const ProductDetails = () => {
     }
 
     const selectedDetail = product.detail.find(
-      (detail) => detail.product_detail_id === selectedDetailId
+      (detail) => detail.product_detail_id == selectedDetailId
     );
 
     // Validate that a product detail is selected
@@ -199,6 +199,12 @@ const ProductDetails = () => {
     }
   };
 
+  const selectedDetail = product.detail?.find(
+    (detail) => detail.product_detail_id === Number(selectedDetailId)
+  );
+  console.log('detail: ', selectedDetail);
+
+
   if (loading) return <div>Loading...</div>;
 
   return (
@@ -207,7 +213,8 @@ const ProductDetails = () => {
       <div className="product-detail-top">
         <div className="product-image">
           <img
-            src={`${API_URL}/img/${product.detail[0]?.productImage?.img_url}`}
+            src={`${API_URL}/img/${selectedDetail?.productImage?.img_url || "default_image.png"
+              }`}
             alt={product.product_name}
           />
         </div>
