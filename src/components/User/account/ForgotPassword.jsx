@@ -36,9 +36,12 @@ const ForgotPassword = () => {
 
     return (
         <div className="relative h-screen bg-gray-50 overflow-hidden">
-            <div className="absolute top-20 left-2 w-[500px] h-[500px] bg-[#D1208A80] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob"></div>
-            <div className="absolute top-20 right-32 w-[500px] h-[500px] bg-[#FFB20080] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob animation-delay-2000"></div>
-            <div className="flex min-h-full flex-col justify-center sm:px-6 lg:px-8">
+            {/* Blob Background */}
+            <div className="absolute top-10 left-5 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] bg-[#D1208A80] rounded-full mix-blend-multiply filter blur-[100px] opacity-70 animate-blob"></div>
+            <div className="absolute top-20 right-10 w-[300px] h-[300px] sm:w-[400px] sm:h-[400px] lg:w-[500px] lg:h-[500px] bg-[#FFB20080] rounded-full mix-blend-multiply filter blur-[100px] opacity-70 animate-blob animation-delay-2000"></div>
+
+            {/* Main Content */}
+            <div className="flex min-h-full flex-col justify-center px-4 sm:px-6 lg:px-8">
                 <div className="sm:mx-auto sm:w-full sm:max-w-md">
                     <img
                         className="mx-auto h-12 w-auto"
@@ -51,11 +54,15 @@ const ForgotPassword = () => {
                 </div>
 
                 <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                    <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <div className="bg-white py-8 px-6 shadow rounded-lg sm:px-10">
                         <form onSubmit={formik.handleSubmit} className="space-y-6">
                             {formik.errors.general && (
-                                <div className="text-red-600 text-sm text-center">{formik.errors.general}</div>
+                                <div className="text-red-600 text-sm text-center">
+                                    {formik.errors.general}
+                                </div>
                             )}
+
+                            {/* Email Input */}
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                                     Email
@@ -74,6 +81,7 @@ const ForgotPassword = () => {
                                 </div>
                             </div>
 
+                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"

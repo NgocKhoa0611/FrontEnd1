@@ -15,7 +15,6 @@ const Login = () => {
       email: Yup.string().email('Email không hợp lệ').required('Bắt buộc'),
       password: Yup.string().required('Bắt buộc'),
     }),
-
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
         const res = await axios.post(`http://localhost:8000/auth/login`, {
@@ -26,11 +25,9 @@ const Login = () => {
         if (res.status !== 200) {
           throw new Error(res.data.message || 'Đăng nhập thất bại');
         }
-        // Lưu token vào cookie
         const data = res.data;
         document.cookie = `token=${data.token}; path=/; max-age=${60 * 60}`;
 
-        // Chuyển trang theo role
         const token = data.token;
         const payload = JSON.parse(atob(token.split('.')[1]));
         if (payload.role === 'admin') {
@@ -48,27 +45,27 @@ const Login = () => {
       } finally {
         setSubmitting(false);
       }
-    }
+    },
+  });
 
-  })
   return (
     <div className="relative h-screen bg-gray-50 overflow-hidden">
-      <div className="absolute top-20 left-2 w-[500px] h-[500px] bg-[#D1208A80] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob"></div>
-      <div className="absolute top-20 right-32 w-[500px] h-[500px] bg-[#FFB20080] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob animation-delay-2000"></div>
-      <div className="flex min-h-full flex-col justify-center sm:px-6 lg:px-8">
+      <div className="absolute top-20 left-2 w-[300px] h-[300px] sm:w-[500px] z-30 sm:h-[500px] bg-[#D1208A80] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob"></div>
+      <div className="absolute top-20 right-10 w-[300px] h-[300px] sm:w-[500px] z-30 sm:h-[500px] bg-[#FFB20080] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob animation-delay-2000"></div>
+      <div className="flex min-h-full flex-col justify-center px-4 sm:px-6 lg:px-8 z-40">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <img
             className="mx-auto h-12 w-auto"
             src="https://imgur.com/WRxNbZj.png"
             alt="Your Company"
           />
-          <h2 className="mt-6 text-center text-2xl font-bold tracking-tight text-gray-900">
+          <h2 className="mt-6 text-center text-lg sm:text-2xl font-bold tracking-tight text-gray-900">
             ĐĂNG NHẬP
           </h2>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-40">
+          <div className="py-6 px-4 sm:py-8 sm:px-10 shadow sm:rounded-lg">
             <form onSubmit={formik.handleSubmit} className="space-y-6">
               {formik.errors.general && (
                 <div className="text-red-600 text-sm text-center">{formik.errors.general}</div>
@@ -83,7 +80,7 @@ const Login = () => {
                     id="email"
                     type="email"
                     {...formik.getFieldProps("email")}
-                    className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                   />
                   {formik.touched.email && formik.errors.email ? (
                     <div className="text-sm text-red-600">{formik.errors.email}</div>
@@ -101,7 +98,7 @@ const Login = () => {
                     id="password"
                     type="password"
                     {...formik.getFieldProps("password")}
-                    className="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                    className="block w-full rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                   />
                   {formik.touched.password && formik.errors.password ? (
                     <div className="text-sm text-red-600">{formik.errors.password}</div>
@@ -109,27 +106,25 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end">
-                <div className="text-sm">
-                  <Link className="font-medium text-indigo-600 hover:text-indigo-500" to="/forgot-password">
-                    Quên mật khẩu?
-                  </Link>
-                </div>
+              <div className="flex items-center justify-between">
+                <Link className="text-sm font-medium text-indigo-600 hover:text-indigo-500" to="/forgot-password">
+                  Quên mật khẩu?
+                </Link>
               </div>
 
               <button
                 type="submit"
-                className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="flex w-full justify-center rounded-md bg-indigo-600 py-2 sm:py-3 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               >
                 Đăng nhập
               </button>
               <div className="flex items-center justify-center">
-                <div className="text-sm">
+                <p className="text-sm">
                   Bạn chưa có tài khoản?{" "}
                   <Link className="font-medium text-indigo-600 hover:text-indigo-500" to="/signup">
                     Đăng ký ngay
                   </Link>
-                </div>
+                </p>
               </div>
             </form>
           </div>

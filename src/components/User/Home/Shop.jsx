@@ -12,8 +12,31 @@ const Shop = () => {
     dots: false,
     infinite: true,
     slidesToShow: 4,
-    slidesToScroll: 4,
+    slidesToScroll: 1,
     autoplay: true,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 1
+        }
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1
+        }
+      },
+      {
+        breakpoint: 640,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }
+    ]
   };
 
   useEffect(() => {
@@ -30,26 +53,30 @@ const Shop = () => {
   }, []);
 
   return (
-    <section className="Discount background NewArrivals">
-      <div className="container">
-        <div className="heading d_flex">
-          <div className="heading-left row f_flex">
-            <img src={hot} alt="Promotional" />
-            <h2>Sản phẩm nổi bật</h2>
+    <section className="py-8 bg-gray-50 rounded-lg">
+      <div className="container mx-auto p-2 px-3">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <img src={hot} alt="Promotional" className="w-8 h-8" />
+            <h2 className="text-xl md:text-2xl font-bold">Sản phẩm nổi bật</h2>
           </div>
-          <div className="heading-right row">
-            <span>Xem tất cả</span>
+          <div className="flex items-center gap-2 cursor-pointer">
+            <span className="text-sm md:text-base">Xem tất cả</span>
             <i className="fa-solid fa-caret-right"></i>
           </div>
         </div>
-        <Slider {...settings}>
-          {shopItems.map((item, index) => {
-            return <Product key={index} shopItems={item} />;
-          })}
-        </Slider>
+        
+        <div>
+          <Slider {...settings}>
+            {shopItems.map((item, index) => (
+              <div key={index} className="px-2">
+                <Product shopItems={item} />
+              </div>
+            ))}
+          </Slider>
+        </div>
       </div>
     </section>
   );
 };
-
 export default Shop;

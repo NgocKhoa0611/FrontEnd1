@@ -2,37 +2,31 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Product from "../ui/Product";
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import "./index.css";
 import Loading from "../ui/Loading";
 
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [colors, setColors] = useState([]);
-  const [sizes, setSizes] = useState([]);
-  const [selectedColor, setSelectedColor] = useState("");  // State for color filter
-  const [selectedSize, setSelectedSize] = useState("");  // State for size filter
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage] = useState(12);
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(1000000);
   const [minSliderValue, setMinSliderValue] = useState(0);
-  const [maxSliderValue, setMaxSliderValue] = useState(10000000);
+  const [maxSliderValue, setMaxSliderValue] = useState(1000000);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productRes, categoryRes, colorRes, sizeRes] = await Promise.all([
+        const [productRes, categoryRes] = await Promise.all([
           axios.get("http://localhost:8000/product"),
           axios.get("http://localhost:8000/category"),
         ]);
 
         setProducts(productRes.data);
         setCategories(categoryRes.data);
-        setColors(colorRes.data);
-        setSizes(sizeRes.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -43,17 +37,13 @@ const Products = () => {
     fetchData();
   }, []);
 
-  // Lọc sản phẩm theo màu sắc và kích cỡ
   const filteredProducts = products.filter((product) => {
-    // Kiểm tra điều kiện lọc
     const isPriceInRange = (product.price_promotion >= minPrice && product.price_promotion <= maxPrice) ||
       (product.price >= minPrice && product.price <= maxPrice);
     const isCategoryMatch = selectedCategory ? product.category_id === selectedCategory : true;
-    const isColorMatch = selectedColor ? product.color_id === selectedColor : true;  // Lọc theo màu sắc
-    const isSizeMatch = selectedSize ? product.size_id === selectedSize : true;  // Lọc theo kích cỡ
-    const isNotHidden = product.is_hidden === 0;  // Chỉ hiển thị sản phẩm không ẩn
+    const isNotHidden = product.is_hidden === 0;
 
-    return isPriceInRange && isCategoryMatch && isColorMatch && isSizeMatch && isNotHidden;
+    return isPriceInRange && isCategoryMatch && isNotHidden;
   });
 
   const indexOfLastProduct = currentPage * productsPerPage;
@@ -61,7 +51,10 @@ const Products = () => {
   const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  const handlePageChange = (pageNumber) => setCurrentPage(pageNumber);
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleMinSliderChange = (e) => {
     const newMin = Math.min(Number(e.target.value), maxSliderValue);
@@ -91,34 +84,35 @@ const Products = () => {
     return <Loading />;
   }
 
-  return (
-    <div className="container mx-auto p-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+  const FilterSection = () => (
+    <div className={`filter-container bg-white p-4 rounded-lg shadow-md ${showFilters ? 'block' : 'hidden md:block'}`}>
+      <h3 className="text-xl font-semibold mb-6">Lọc Sản phẩm</h3>
 
-        <div className="filter-container col-span-1">
-          <h3 className="text-xl font-semibold mb-4">Lọc Sản phẩm</h3>
+      <div className="space-y-6">
+        {/* Category Filter */}
+        <div className="category-filter">
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+            Danh mục:
+          </label>
+          <select
+            id="category"
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="">Tất cả</option>
+            {categories.map((category) => (
+              <option key={category.category_id} value={category.category_id}>
+                {category.category_name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-          {/* Bộ lọc theo danh mục */}
-          <div className="category-filter mb-4">
-            <label htmlFor="category">Danh mục:</label>
-            <select
-              id="category"
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="border p-2 w-full"
-            >
-              <option value="">Tất cả</option>
-              {categories.map((category) => (
-                <option key={category.category_id} value={category.category_id}>
-                  {category.category_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
+       
           {/* Bộ lọc theo khoảng giá */}
           <div className="price-filter mb-4">
             <label>Khoảng Giá:</label>
@@ -141,43 +135,80 @@ const Products = () => {
               <span>{maxPrice.toLocaleString('vi-VN')} VND</span>
             </div>
           </div>
+        </div>  
+    </div>
+  );
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Mobile Filter Toggle */}
+      <button
+        onClick={() => setShowFilters(!showFilters)}
+        className="md:hidden w-full mb-4 p-3 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2"
+      >
+        <i className="fas fa-filter"></i>
+        {showFilters ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}
+      </button>
+
+      <div className="flex flex-col md:flex-row gap-6">
+        {/* Filters */}
+        <div className="md:w-1/4">
+          <FilterSection />
         </div>
 
-        <div className="products-container col-span-3">
-          <h2 className="text-2xl font-bold mb-4">Tất cả Sản phẩm</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Products Grid */}
+        <div className="flex-1">
+          <div className="mb-6 flex justify-between items-center">
+            <h2 className="text-2xl font-bold">Tất cả Sản phẩm</h2>
+            <span className="text-gray-600">
+              {filteredProducts.length} sản phẩm
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {currentProducts.map((product) => (
               <Product key={product.product_id} shopItems={product} />
             ))}
           </div>
 
-          <div className="pagination mt-4 flex justify-center">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-4 py-2 border rounded-l-lg"
-            >
-              <FaArrowLeft />
-            </button>
-            {[...Array(totalPages).keys()].map((number) => (
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-8 flex justify-center items-center gap-2">
               <button
-                key={number + 1}
-                onClick={() => handlePageChange(number + 1)}
-                className={`px-4 py-2 ${currentPage === number + 1 ? 'bg-blue-500 text-white' : 'bg-white text-black'}`}
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="p-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
               >
-                {number + 1}
+                <FaArrowLeft className="w-4 h-4" />
               </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 border rounded-r-lg"
-            >
-              <FaArrowRight />
-            </button>
-          </div>
+
+              <div className="flex gap-2">
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index + 1}
+                    onClick={() => handlePageChange(index + 1)}
+                    className={`w-10 h-10 rounded-lg ${
+                      currentPage === index + 1
+                        ? 'bg-blue-600 text-white'
+                        : 'border hover:bg-gray-100'
+                    }`}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="p-2 border rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+              >
+                <FaArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
-      </div>
+      </div>  
     </div>
   );
 };

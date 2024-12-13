@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch } from "react-redux";
 import { updateCartDetail, removeItemFromCart, setCartItems } from '../../../../redux/slices/cartslice';
 import { setSelectedItems } from '../../../../redux/slices/orderslice';
-import { } from '../../../../redux/slices/cartslice';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -29,12 +28,10 @@ const Cart = () => {
         const response = await axios.get('http://localhost:8000/cart', {
           withCredentials: true,
         });
-        console.log('Cart items:', response.data.cart);
         setCart(response.data.cart || { cartDetail: [] });
         setLoading(false);
       } catch (error) {
-        const errorMessage = error.response?.data?.message || error.message || 'Lỗi không xác định';
-        console.error('Error fetching cart:', errorMessage);
+        console.error('Error fetching cart:', error.response?.data?.message || error.message);
         setLoading(false);
       }
     };
@@ -46,7 +43,6 @@ const Cart = () => {
       const isAlreadySelected = prevSelected.some(
         (product) => product.cart_detail_id === cartDetail.cart_detail_id
       );
-      console.log('ProductDetail:', cartDetail.ProductDetail);
 
       const updatedSelectedProducts = isAlreadySelected
         ? prevSelected.filter(
@@ -66,24 +62,17 @@ const Cart = () => {
           },
         ];
 
-      // Cập nhật Redux store
-      console.log(updatedSelectedProducts);
-
-      dispatch(
-        setSelectedItems(updatedSelectedProducts)
-      );
-
+      dispatch(setSelectedItems(updatedSelectedProducts));
       return updatedSelectedProducts;
     });
   };
 
   const handleSelectAll = () => {
-    // Kiểm tra nếu tất cả sản phẩm đã được chọn
     const isAllSelected = cart.cartDetail.length > 0 &&
       selectedProducts.length === cart.cartDetail.length;
 
     const updatedSelectedProducts = isAllSelected
-      ? [] // Bỏ chọn tất cả
+      ? []
       : cart.cartDetail.map((cartDetail) => ({
         cart_detail_id: cartDetail.cart_detail_id,
         product_detail_id: cartDetail.product_detail_id,
@@ -95,107 +84,66 @@ const Cart = () => {
         img_url: cartDetail.ProductDetail?.productImage?.img_url || '',
       }));
 
-    // Cập nhật state local
     setSelectedProducts(updatedSelectedProducts);
-
-    // Cập nhật Redux store
     dispatch(setSelectedItems(updatedSelectedProducts));
   };
 
-  const handleIncrease = async (product_detail_id) => {
+  const handleQuantityChange = async (product_detail_id, action) => {
     try {
-      const response = await axios.put(
-        'http://localhost:8000/cart/increase',
+      const endpoint = action === 'increase' ? 'increase' : 'decrease';
+      await axios.put(
+        `http://localhost:8000/cart/${endpoint}`,
         { product_detail_id },
         { withCredentials: true }
       );
 
-      const updatedCart = cart.cartDetail.map((item) => {
-        if (item.ProductDetail.product_detail_id === product_detail_id) {
-          item.quantity += 1;
-        }
-        return item;
-      });
+      const updatedCart = {
+        cartDetail: cart.cartDetail.map((item) => {
+          if (item.ProductDetail.product_detail_id === product_detail_id) {
+            const newQuantity = action === 'increase' 
+              ? item.quantity + 1 
+              : Math.max(1, item.quantity - 1);
+            return { ...item, quantity: newQuantity };
+          }
+          return item;
+        })
+      };
 
-      setCart({ cartDetail: updatedCart });
-
-      setSelectedProducts((prevSelected) =>
-        prevSelected.map((product) =>
-          product.product_detail_id === product_detail_id
-            ? { ...product, quantity: product.quantity + 1 }
-            : product
-        )
-      );
+      setCart(updatedCart);
 
       const updatedSelectedProducts = selectedProducts.map((product) =>
         product.product_detail_id === product_detail_id
-          ? { ...product, quantity: product.quantity + 1 }
+          ? { ...product, quantity: action === 'increase' ? product.quantity + 1 : Math.max(1, product.quantity - 1) }
           : product
       );
 
       dispatch(setSelectedItems(updatedSelectedProducts));
-    } catch (error) {
-      console.error('Error increasing quantity:', error.message || error);
-    }
-  };
-
-  const handleDecrease = async (product_detail_id) => {
-    try {
-      const response = await axios.put(
-        'http://localhost:8000/cart/decrease',
-        { product_detail_id },
-        { withCredentials: true }
-      );
-
-      const updatedCart = cart.cartDetail.map((item) => {
-        if (item.ProductDetail.product_detail_id === product_detail_id && item.quantity > 1) {
-          item.quantity -= 1;
-          setSelectedProducts((prevSelected) =>
-            prevSelected.map((product) =>
-              product.product_detail_id === product_detail_id
-                ? { ...product, quantity: product.quantity - 1 }
-                : product
-            )
-          );
-        }
-        return item;
-      });
-
-      setCart({ cartDetail: updatedCart });
-
-      const updatedSelectedProducts = selectedProducts.map((product) =>
-        product.product_detail_id === product_detail_id
-          ? { ...product, quantity: product.quantity - 1 }
-          : product
-      );
-
-      dispatch(setSelectedItems(updatedSelectedProducts));
+      setSelectedProducts(updatedSelectedProducts);
 
     } catch (error) {
-      console.error('Error decreasing quantity:', error.message || error);
+      console.error(`Error ${action}ing quantity:`, error);
     }
   };
 
   const handleRemove = async (product_detail_id) => {
-    const confirmDelete = window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?");
-    if (!confirmDelete) {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?")) {
       return;
     }
 
     try {
-      const response = await axios.delete(`http://localhost:8000/cart/${product_detail_id}`, {
+      await axios.delete(`http://localhost:8000/cart/${product_detail_id}`, {
         data: { product_detail_id },
         withCredentials: true,
       });
 
-      console.log(response.data.message);
+      const updatedCart = {
+        cartDetail: cart.cartDetail.filter(
+          (item) => item.ProductDetail.product_detail_id !== product_detail_id
+        )
+      };
 
-      const updatedCart = cart.cartDetail.filter(
-        (item) => item.ProductDetail.product_detail_id !== product_detail_id
-      );
-
-      setCart({ cartDetail: updatedCart });
-      dispatch(updateCartDetail(updatedCart));
+      setCart(updatedCart);
+      dispatch(updateCartDetail(updatedCart.cartDetail));
 
       const updatedSelectedProducts = selectedProducts.filter(
         (product) => product.product_detail_id !== product_detail_id
@@ -204,127 +152,217 @@ const Cart = () => {
       dispatch(setSelectedItems(updatedSelectedProducts));
 
     } catch (error) {
-      console.error('Error removing item:', error.message || error);
+      console.error('Error removing item:', error);
     }
   };
 
-  const isAllSelected = cart.cartDetail.length > 0 && selectedProducts.length === cart.cartDetail.length;
-
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
+
   return (
     <div className="bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-6 text-gray-700">Giỏ hàng</h1>
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="md:w-3/4">
-            <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-center py-4 w-12">
-                      <input
-                        type="checkbox"
-                        onChange={handleSelectAll}
-                        checked={isAllSelected}
-                        className="form-checkbox h-5 w-5 text-blue-600"
-                      />
-                    </th>
-                    <th className="text-center font-semibold py-4 text-gray-600">Sản phẩm</th>
-                    <th className="text-center font-semibold py-4 text-gray-600">Giá</th>
-                    <th className="text-center font-semibold py-4 text-gray-600">Số lượng</th>
-                    <th className="text-center font-semibold py-4 text-gray-600">Tổng cộng</th>
-                    <th className="text-center font-semibold py-4 text-gray-600">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {cart.cartDetail.map((item) => (
-                    <tr className="border-b" key={item.cart_detail_id}>
-                      <td className="py-4 w-12">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-700">Giỏ hàng</h1>
+        
+        {cart.cartDetail.length === 0 ? (
+          <div className="bg-white rounded-lg shadow-lg p-8 text-center">
+            <p className="text-gray-600 mb-4">Giỏ hàng của bạn đang trống</p>
+            <button
+              onClick={() => navigate('/')}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition"
+            >
+              Tiếp tục mua sắm
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Cart Items */}
+            <div className="lg:w-3/4">
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+                {/* Desktop Table */}
+                <table className="w-full hidden md:table">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="p-4 text-left w-fit text-center">
                         <input
                           type="checkbox"
-                          checked={selectedProducts.some(
-                            (product) => product.cart_detail_id === item.cart_detail_id
-                          )}
-                          onChange={() => handleCheckboxChange(item)}
-                          className="form-checkbox h-5 w-5 text-blue-600"
+                          onChange={handleSelectAll}
+                          checked={cart.cartDetail.length > 0 && selectedProducts.length === cart.cartDetail.length}
+                          className="w-4 h-4 rounded border-gray-300"
                         />
-                      </td>
-                      <td className="py-4 w-96">
-                        <div className="flex items-center">
-                          <img
-                            className="w-24 h-24 rounded-md mr-4 border"
-                            src={`http://localhost:8000/img/${item.ProductDetail.productImage?.img_url}`}
-                            alt={item.ProductDetail.product.product_name}
-                          />
-                          <span className="font-semibold text-gray-700">{item.ProductDetail.product.product_name}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 pr-4 w-14 text-center text-gray-600">{item.ProductDetail.product.price.toLocaleString()}₫</td>
-                      <td className="py-4 pr-4 w-12">
-                        <div className="flex items-center border border-gray-300 rounded-md w-24">
-                          <button
-                            onClick={() => handleDecrease(item.ProductDetail.product_detail_id)}
-                            className="py-2 px-2 text-gray-700 hover:bg-gray-200 transition"
-                            disabled={item.quantity <= 1}
-                          >
-                            -
-                          </button>
-                          <span className="text-center w-12 border-l border-r border-gray-500 py-2 text-gray-700">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => handleIncrease(item.ProductDetail.product_detail_id)}
-                            className="py-2 px-2 text-gray-700 hover:bg-gray-200 transition"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </td>
-                      <td className="py-4 px-2 w-12 text-gray-600">{(item.ProductDetail.product.price * item.quantity).toLocaleString()}₫</td>
-                      <td className="py-2 text-center w-16">
-                        <button
-                          onClick={() => handleRemove(item.ProductDetail.product_detail_id)}
-                          className="text-red-400 hover:text-red-600 transition" title="Xóa sản phẩm"
-                        >
-                          <FontAwesomeIcon icon={faTrash} className="text-xl" />
-                        </button>
-                      </td>
+                      </th>
+                      <th className="p-4 text-center font-semibold text-gray-600 w-[500px]">Sản phẩm</th>
+                      <th className="p-4 text-center font-semibold text-gray-600">Số lượng</th>
+                      <th className="p-4 text-center font-semibold text-gray-600">Tổng cộng</th>
+                      <th className="p-4 text-center font-semibold text-gray-600">Thao tác</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div className="md:w-1/4">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 text-gray-700">Chi tiết thanh toán</h2>
-              <div className="flex justify-between mb-2 text-gray-600">
-                <span>Tạm tính</span>
-                <span>{totalPrice.toLocaleString()}₫</span>
-              </div>
-              <div className="flex justify-between mb-2 text-gray-600">
-                <span>Voucher</span>
-                <span>{voucher.toLocaleString()}₫</span>
-              </div>
-              <hr className="my-4 border-gray-200" />
-              <div className="flex justify-between text-lg font-semibold text-gray-700">
-                <span>Tổng cộng</span>
-                <span>{totalPrice.toLocaleString()}₫</span>
-              </div>
-              <button
-                onClick={() => {
-                  navigate('/checkout');
-                }}
+                  </thead>
+                  <tbody>
+                    {cart.cartDetail.map((item) => (
+                      <tr key={item.cart_detail_id} className="border-t">
+                        <td className="p-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedProducts.some(
+                              (product) => product.cart_detail_id === item.cart_detail_id
+                            )}
+                            onChange={() => handleCheckboxChange(item)}
+                            className="w-4 h-4 rounded border-gray-300"
+                          />
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center">
+                            <img
+                              src={`http://localhost:8000/img/${item.ProductDetail.productImage?.img_url}`}
+                              alt={item.ProductDetail.product.product_name}
+                              className="w-16 h-16 object-cover rounded-md"
+                            />
+                            <div className="ml-4">
+                              <h3 className="font-medium text-gray-900 text-left text-[15px]">{item.ProductDetail.product.product_name}</h3>
+                              <p className="text-sm text-left text-gray-500">
+                                {item.ProductDetail.color.color_name} - {item.ProductDetail.size.size_name}
+                              </p>
+                              <p className="text-left">
+                                {item.ProductDetail.product.price.toLocaleString()}₫
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center justify-center">
+                            <button
+                              onClick={() => handleQuantityChange(item.ProductDetail.product_detail_id, 'decrease')}
+                              className="w-8 h-8 flex items-center justify-center border rounded-l hover:bg-gray-100"
+                            >
+                              -
+                            </button>
+                            <span className="w-12 h-8 flex items-center justify-center border-t border-b">
+                              {item.quantity}
+                            </span>
+                            <button
+                              onClick={() => handleQuantityChange(item.ProductDetail.product_detail_id, 'increase')}
+                              className="w-8 h-8 flex items-center justify-center border rounded-r hover:bg-gray-100"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td className="p-4 text-center">
+                          {(item.ProductDetail.product.price * item.quantity).toLocaleString()}₫
+                        </td>
+                        <td className="p-4 text-center">
+                          <button
+                            onClick={() => handleRemove(item.ProductDetail.product_detail_id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
 
-                className="bg-blue-500 text-white font-semibold py-2 px-4 rounded-lg mt-6 w-full hover:bg-blue-600 transition"
-              >
-                Thanh toán
-              </button>
+                {/* Mobile List */}
+                <div className="md:hidden divide-y">
+                  {cart.cartDetail.map((item) => (
+                    <div key={item.cart_detail_id} className="p-4">
+                      <div className="flex items-start space-x-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedProducts.some(
+                              (product) => product.cart_detail_id === item.cart_detail_id
+                            )}
+                            onChange={() => handleCheckboxChange(item)}
+                            className="mt-1 w-4 h-4 rounded border-gray-300 self-center "
+                          />
+                        <img
+                          src={`http://localhost:8000/img/${item.ProductDetail.productImage?.img_url}`}
+                          alt={item.ProductDetail.product.product_name}
+                          className="w-20 h-20 object-cover rounded-md"
+                        />
+                        <div className="flex-1 pr-3">
+                          <h3 className="font-medium text-gray-900">{item.ProductDetail.product.product_name}</h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {item.ProductDetail.color.color_name} - {item.ProductDetail.size.size_name}
+                          </p>
+                          <div className="flex justify-between items-center">
+                            <p className="text-sm font-medium text-gray-900 mt-2">
+                              {item.ProductDetail.product.price.toLocaleString()}₫
+                            </p>
+                            <div className="flex items-center border rounded-lg">
+                              <button
+                                onClick={() => handleQuantityChange(item.ProductDetail.product_detail_id, 'decrease')}
+                                className="w-8 h-8 flex items-center justify-center hover:bg-gray-100"
+                              >
+                                -
+                              </button>
+                              <span className="w-12 h-8 flex items-center justify-center border-x">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => handleQuantityChange(item.ProductDetail.product_detail_id, 'increase')}
+                                className="w-8 h-8 flex items-center justify-center hover:bg-gray-100"
+                              >
+                                +
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between self-center">
+                            <button
+                              onClick={() => handleRemove(item.ProductDetail.product_detail_id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <FontAwesomeIcon icon={faTrash} />
+                            </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Order Summary */}
+            <div className="lg:w-1/4">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h2 className="text-lg font-semibold mb-4">Chi tiết thanh toán</h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Tạm tính</span>
+                    <span>{totalPrice.toLocaleString()}₫</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Voucher</span>
+                    <span>{voucher.toLocaleString()}₫</span>
+                  </div>
+                  <div className="pt-3 border-t">
+                    <div className="flex justify-between font-semibold">
+                      <span>Tổng cộng</span>
+                      <span>{totalPrice.toLocaleString()}₫</span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => navigate('/checkout')}
+                  disabled={selectedProducts.length === 0}
+                  className={`w-full mt-6 py-3 rounded-lg text-white font-medium
+                    ${selectedProducts.length === 0 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700'}`}
+                >
+                  Thanh toán
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
