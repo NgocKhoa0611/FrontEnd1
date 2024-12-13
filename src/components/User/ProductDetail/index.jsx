@@ -4,6 +4,7 @@ import { API_URL } from "../../../../configs/varibles";
 import axios from "axios";
 import { useDispatch } from "react-redux";
 import { addCartDetail } from '../../../../redux/slices/cartslice';
+import { setSelectedItems } from '../../../../redux/slices/orderslice';
 import { toast, Toaster } from 'react-hot-toast';
 
 const ProductDetails = () => {
@@ -12,47 +13,43 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState({});
   const [selectedDetailId, setSelectedDetailId] = useState("");
-  const [selectedSize, setSelectedSize] = useState("");
-  const [selectedColor, setSelectedColor] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [reviews, setReviews] = useState([]);
   const [comment, setComment] = useState("");
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [productResponse, reviewsResponse] = await Promise.all([
-          fetch(`${API_URL}/product/${id}`).then(res => res.json()),
-          fetch(`${API_URL}/review/${id}`).then(res => res.json())
-        ]);
-
-        setProduct(productResponse);
-        setSelectedColor(productResponse.detail[0]?.color?.color_name || "");
-        setSelectedSize(productResponse.detail[0]?.size?.size_name || "");
-        setReviews(reviewsResponse);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-        toast.error("Không thể tải thông tin sản phẩm");
-      } finally {
+    axios
+    fetch(`${API_URL}/product/${id}`)
+      .then(response => response.json())
+      .then(data => {
+        setProduct(data);
+        setSelectedDetailId(data.detail[0].product_detail_id);
+      })
+      .catch(error => {
+        console.error("Error fetching product:", error);
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
-
-    fetchData();
+      });
+    fetch(`${API_URL}/review/${id}`)  // API lấy bình luận
+      .then(response => response.json())
+      .then(data => {
+        setReviews(data);  // Lưu bình luận vào state
+      })
+      .catch(error => {
+        console.error("Error fetching reviews:", error);
+      });
   }, [id]);
 
   const handleDetailSelect = (detailId) => {
     setSelectedDetailId(detailId);
-    const selectedDetail = product.detail.find(
-      (detail) => detail.product_detail_id === detailId
-    );
-    setSelectedColor(selectedDetail?.color?.color_name || "");
-    setSelectedSize(selectedDetail?.size?.size_name || "");
   };
 
-  const incrementQuantity = () => setQuantity(prev => prev + 1);
-  const decrementQuantity = () => setQuantity(prev => prev > 1 ? prev - 1 : 1);
+  const incrementQuantity = () => setQuantity(quantity + 1);
+  const decrementQuantity = () => {
+    if (quantity > 1) setQuantity(quantity - 1);
+  };
 
   const addToCart = async () => {
     const token = document.cookie
@@ -60,17 +57,18 @@ const ProductDetails = () => {
       .find((cookie) => cookie.trim().startsWith("token="));
 
     if (!token) {
-      toast.error("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+      alert("Bạn cần phải đăng nhập trước khi thêm sản phẩm vào giỏ hàng.");
       navigate("/login");
       return;
     }
 
     const selectedDetail = product.detail.find(
-      (detail) => detail.product_detail_id === selectedDetailId
+      (detail) => detail.product_detail_id == selectedDetailId
     );
 
+    // Validate that a product detail is selected
     if (!selectedDetail) {
-      toast.error("Vui lòng chọn kích thước và màu sắc");
+      alert("Vui lòng chọn một chi tiết sản phẩm trước khi thêm vào giỏ hàng.");
       return;
     }
 
@@ -85,37 +83,36 @@ const ProductDetails = () => {
         name: product.product_name,
       };
 
+      // Send POST request to add item to cart
       const response = await axios.post(
-        `${API_URL}/cart/add`,
+        "http://localhost:8000/cart/add",
         { newItem },
         { withCredentials: true }
       );
 
+      // Update Redux store if successful
       if (response.status === 200) {
         dispatch(addCartDetail(newItem));
-        toast.success("Đã thêm sản phẩm vào giỏ hàng");
+        alert(`${product.product_name} đã được thêm vào giỏ hàng.`);
       }
     } catch (error) {
       console.error("Error adding to cart:", error);
-      toast.error("Không thể thêm sản phẩm vào giỏ hàng");
+      alert("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.");
     }
   };
 
   const handleBuyNow = async () => {
     const selectedDetail = product.detail.find(
-      (detail) =>
-        detail.size.size_name === selectedSize &&
-        detail.color.color_name === selectedColor
+      (detail) => detail.product_detail_id === selectedDetailId
     );
 
     if (!selectedDetail) {
-      toast.error("Vui lòng chọn kích thước và màu sắc");
+      alert("Vui lòng chọn kích thước và màu sắc trước khi mua hàng.");
       return;
     }
-
     const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
     if (!token) {
-      toast.error("Vui lòng đăng nhập để mua hàng");
+      alert("Bạn cần phải đăng nhập trước khi mua sản phẩm.");
       navigate("/login");
       return;
     }
@@ -123,82 +120,87 @@ const ProductDetails = () => {
     try {
       const newItem = {
         product_detail_id: selectedDetail.product_detail_id,
-        product_name: product.product_name,
-        price: product.price,
-        quantity: 1,
-        size: selectedSize,
-        color: selectedColor,
+        quantity,
+        size: selectedDetail.size.size_name,
+        color: selectedDetail.color.color_name,
         img_url: selectedDetail.productImage.img_url,
+        price: product.price,
+        product_name: product.product_name,
       };
 
-      if (selectedDetail?.is_primary !== true) {
-        toast.error("Sản phẩm này không khả dụng");
-        return;
-      }
+      const response = await axios.post('http://localhost:8000/cart/add', {
+        newItem,
+      }, {
+        withCredentials: true,
+      });
+      dispatch(addCartDetail(newItem))
 
-      const response = await axios.post(
-        `${API_URL}/cart/add`,
-        { newItem },
-        { withCredentials: true }
-      );
 
       if (response.status === 200) {
-        dispatch(addCartDetail(newItem));
+        dispatch(setSelectedItems([newItem]));
         navigate('/checkout');
       }
     } catch (error) {
       console.error('Error buying now:', error);
-      toast.error("Không thể xử lý giao dịch");
     }
   };
 
   const handleSendComment = async () => {
     if (!comment.trim()) {
-      toast.error("Bình luận không được để trống");
+      toast.error("Bình luận không được để trống!");
       return;
     }
 
+    // Kiểm tra token và lấy user_id từ cookie
     const token = document.cookie
       .split("; ")
       .find((row) => row.startsWith("token="))
       ?.split("=")[1];
 
     if (!token) {
-      toast.error("Vui lòng đăng nhập để bình luận");
-      navigate("/login");
+      alert("Bạn cần đăng nhập để bình luận!");
+      navigate("/login"); // Điều hướng người dùng đến trang đăng nhập nếu chưa có token
+      return;
+    }
+
+    // Giải mã token để lấy user_id
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.id; // Lấy user_id từ payload (kiểm tra lại payload của token)
+
+    if (!userId) {
+      alert("Không tìm thấy thông tin người dùng!");
       return;
     }
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const userId = payload.id;
-
-      if (!userId) {
-        toast.error("Không tìm thấy thông tin người dùng");
-        return;
-      }
-
       const newReview = {
         content: comment,
         date: new Date().toISOString(),
-        product_detail_id: id,
-        user_id: userId,
+        product_detail_id: id, // Bạn cần đảm bảo `id` là id chi tiết sản phẩm hiện tại
+        user_id: userId, // Thêm user_id vào đây
       };
 
       const response = await axios.post(`${API_URL}/review`, newReview, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`, // Gửi token để xác thực
+        },
       });
 
       if (response.status === 201) {
-        setReviews(prev => [response.data.review, ...prev]);
-        setComment("");
-        toast.success("Gửi bình luận thành công");
+        setReviews((prev) => [response.data.review, ...prev]); // Cập nhật danh sách bình luận
+        setComment(""); // Reset khung nhập
+        toast.success("Gửi bình luận thành công!");
       }
     } catch (error) {
       console.error("Error sending comment:", error);
-      toast.error("Không thể gửi bình luận");
+      toast.error("Gửi bình luận thất bại!");
     }
   };
+
+  const selectedDetail = product.detail?.find(
+    (detail) => detail.product_detail_id === Number(selectedDetailId)
+  );
+  console.log('detail: ', selectedDetail);
 
   if (loading) {
     return (
@@ -216,9 +218,9 @@ const ProductDetails = () => {
         <div className="lg:w-1/2">
           <div className="aspect-square rounded-lg overflow-hidden bg-gray-100">
             <img
-              src={`${API_URL}/img/${product.detail[0]?.productImage?.img_url}`}
+              src={`${API_URL}/img/${selectedDetail?.productImage?.img_url || "default_image.png"
+                }`}
               alt={product.product_name}
-              className="w-full h-full object-cover"
             />
           </div>
         </div>
@@ -226,7 +228,7 @@ const ProductDetails = () => {
         {/* Product Info */}
         <div className="lg:w-1/2 space-y-6">
           <h1 className="text-2xl md:text-3xl font-bold">{product.product_name}</h1>
-          
+
           <div className="text-xl md:text-2xl font-semibold text-red-600">
             {new Intl.NumberFormat("vi-VN", {
               style: "currency",
@@ -242,12 +244,8 @@ const ProductDetails = () => {
               onChange={(e) => handleDetailSelect(e.target.value)}
               className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
             >
-              <option value="">Chọn kích thước và màu sắc</option>
               {product.detail.map((detail) => (
-                <option
-                  key={detail.product_detail_id}
-                  value={detail.product_detail_id}
-                >
+                <option key={detail.product_detail_id} value={detail.product_detail_id}>
                   {`Màu ${detail.color.color_name} - Size ${detail.size.size_name}`}
                 </option>
               ))}
@@ -317,7 +315,7 @@ const ProductDetails = () => {
       {/* Comments Section */}
       <div className="mt-12">
         <h3 className="text-xl font-bold mb-6">Bình luận</h3>
-        
+
         {/* Comment Form */}
         <div className="mb-8">
           <textarea

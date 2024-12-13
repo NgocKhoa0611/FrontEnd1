@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-// import { clearSelectedItems } from '../../../redux/slices/orderslice'; // Adjust the path based on your folder structure
+import { clearSelectedItems } from '../../../../redux/slices/orderslice';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import './index.css';
@@ -81,6 +81,7 @@ const Checkout = () => {
       const orderData = {
         total_price: cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
         payment_method: formData.paymentMethod,
+        shipping_address: formData.address,
         order_status: 'Chờ xử lý',
         order_details: cartItems.map((item) => ({
           product_detail_id: item.product_detail_id,
@@ -94,6 +95,8 @@ const Checkout = () => {
         withCredentials: true,
       });
 
+      console.log('Order Response:', response.data);
+
       setOrderSuccess(true);
       setErrorMessage('');
       setFormData({
@@ -103,8 +106,17 @@ const Checkout = () => {
         address: '',
         city: '',
         notes: '',
-        paymentMethod: 'cash',
+        paymentMethod: 'Tiền mặt',
+        payment_date: '',
       });
+      await Promise.all(
+        cartItems.map((item) =>
+          axios.delete(`http://localhost:8000/cart/${item.product_detail_id}`, {
+            withCredentials: true,
+          })
+        )
+      );
+      dispatch(clearSelectedItems());
     } catch (error) {
       console.error('Error creating order:', error);
       setErrorMessage('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
@@ -281,7 +293,7 @@ const Checkout = () => {
               <div className="mt-6 space-y-4">
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors"
+                  className="w-full bg-[#0f3460] hover:bg-[#072344] text-white py-3 rounded-lg transition-colors"
                 >
                   Đặt hàng
                 </button>

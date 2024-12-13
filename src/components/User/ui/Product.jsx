@@ -32,7 +32,7 @@ export default function Product({ shopItems = {} }) {
       });
       const productDetail = productDetailResponse.data.detail[0];
       const product = productDetailResponse.data;
-      
+
       if (productDetail?.is_primary !== true) {
         alert("Sản phẩm này không phải là sản phẩm chính. Không thể thêm vào giỏ hàng.");
         return;
@@ -45,7 +45,7 @@ export default function Product({ shopItems = {} }) {
         color: productDetail.color.color_name,
         img_url: productDetail.productImage.img_url,
         price: product.price,
-        name: product.product_name
+        product_name: product.product_name
       };
 
       const response = await axios.post('http://localhost:8000/cart/add', { newItem }, {

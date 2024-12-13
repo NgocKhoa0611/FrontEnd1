@@ -100,8 +100,8 @@ const Cart = () => {
       const updatedCart = {
         cartDetail: cart.cartDetail.map((item) => {
           if (item.ProductDetail.product_detail_id === product_detail_id) {
-            const newQuantity = action === 'increase' 
-              ? item.quantity + 1 
+            const newQuantity = action === 'increase'
+              ? item.quantity + 1
               : Math.max(1, item.quantity - 1);
             return { ...item, quantity: newQuantity };
           }
@@ -168,7 +168,7 @@ const Cart = () => {
     <div className="bg-gray-50 py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-700">Giỏ hàng</h1>
-        
+
         {cart.cartDetail.length === 0 ? (
           <div className="bg-white rounded-lg shadow-lg p-8 text-center">
             <p className="text-gray-600 mb-4">Giỏ hàng của bạn đang trống</p>
@@ -273,14 +273,14 @@ const Cart = () => {
                   {cart.cartDetail.map((item) => (
                     <div key={item.cart_detail_id} className="p-4">
                       <div className="flex items-start space-x-4">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.some(
-                              (product) => product.cart_detail_id === item.cart_detail_id
-                            )}
-                            onChange={() => handleCheckboxChange(item)}
-                            className="mt-1 w-4 h-4 rounded border-gray-300 self-center "
-                          />
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.some(
+                            (product) => product.cart_detail_id === item.cart_detail_id
+                          )}
+                          onChange={() => handleCheckboxChange(item)}
+                          className="mt-1 w-4 h-4 rounded border-gray-300 self-center "
+                        />
                         <img
                           src={`http://localhost:8000/img/${item.ProductDetail.productImage?.img_url}`}
                           alt={item.ProductDetail.product.product_name}
@@ -315,12 +315,12 @@ const Cart = () => {
                           </div>
                         </div>
                         <div className="flex items-center justify-between self-center">
-                            <button
-                              onClick={() => handleRemove(item.ProductDetail.product_detail_id)}
-                              className="text-red-500 hover:text-red-700"
-                            >
-                              <FontAwesomeIcon icon={faTrash} />
-                            </button>
+                          <button
+                            onClick={() => handleRemove(item.ProductDetail.product_detail_id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -353,9 +353,9 @@ const Cart = () => {
                   onClick={() => navigate('/checkout')}
                   disabled={selectedProducts.length === 0}
                   className={`w-full mt-6 py-3 rounded-lg text-white font-medium
-                    ${selectedProducts.length === 0 
-                      ? 'bg-gray-400 cursor-not-allowed' 
-                      : 'bg-blue-600 hover:bg-blue-700'}`}
+                    ${selectedProducts.length === 0
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-[#0f3460] hover:bg-[#072344]'}`}
                 >
                   Thanh toán
                 </button>
