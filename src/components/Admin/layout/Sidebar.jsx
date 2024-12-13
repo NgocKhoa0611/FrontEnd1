@@ -6,11 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import './MainContent.css';
 
 function Sidebar() {
-  const navigate = useNavigate();
 
-  const handleNavigateHome = () => {
-    navigate('/');
-  };
   return (
     <div className="sidebar">
       <div className="user-info">
@@ -26,10 +22,7 @@ function Sidebar() {
         </ul>
       </nav>
       <button className="logout-btn">Đăng xuất</button>
-      <button className="logout-btn" onClick={handleNavigateHome}>
-        Quay lại trang chủ
-      </button>
-    </div>
+    </div >
   );
 }
 

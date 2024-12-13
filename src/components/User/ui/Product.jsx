@@ -6,6 +6,8 @@ import { addCartDetail } from '../../../../redux/slices/cartslice';
 import { setSelectedItems } from '../../../../redux/slices/orderslice';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCartPlus } from '@fortawesome/free-solid-svg-icons';
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Product({ shopItems = {} }) {
   const { product_id, product_name, price, price_promotion, detail = [] } = shopItems;
@@ -21,7 +23,7 @@ export default function Product({ shopItems = {} }) {
   const handleProductAction = async (action) => {
     const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token='));
     if (!token) {
-      alert("Bạn cần phải đăng nhập trước khi thực hiện hành động.");
+      toast.error("Bạn cần phải đăng nhập trước khi thực hiện hành động.");
       navigate("/login");
       return;
     }
@@ -34,7 +36,7 @@ export default function Product({ shopItems = {} }) {
       const product = productDetailResponse.data;
 
       if (productDetail?.is_primary !== true) {
-        alert("Sản phẩm này không phải là sản phẩm chính. Không thể thêm vào giỏ hàng.");
+        toast.error("Sản phẩm này không phải là sản phẩm chính. Không thể thêm vào giỏ hàng.");
         return;
       }
 
@@ -59,10 +61,11 @@ export default function Product({ shopItems = {} }) {
           dispatch(setSelectedItems([newItem]));
           navigate('/checkout');
         } else {
-          alert(`${product_name} đã thêm vào giỏ hàng`);
+          toast.success(`${product.product_name} đã thêm vào giỏ hàng`);
         }
       }
     } catch (error) {
+      toast.error(`Lỗi khi thực hiện hành động: ${action}`);
       console.error(`Error during ${action}:`, error);
     }
   };

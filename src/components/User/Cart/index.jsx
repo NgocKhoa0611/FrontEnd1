@@ -7,6 +7,8 @@ import { setSelectedItems } from '../../../../redux/slices/orderslice';
 import { useSelector } from 'react-redux';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { toast, Toaster } from 'react-hot-toast';
+import "react-toastify/dist/ReactToastify.css";
 
 const Cart = () => {
   const [cart, setCart] = useState({ cartDetail: [] });
@@ -126,16 +128,14 @@ const Cart = () => {
   };
 
   const handleRemove = async (product_detail_id) => {
-    if (!window.confirm("Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?")) {
-      return;
-    }
-
     try {
+      // Perform the delete operation
       await axios.delete(`http://localhost:8000/cart/${product_detail_id}`, {
         data: { product_detail_id },
         withCredentials: true,
       });
 
+      // Update the cart after removing the item
       const updatedCart = {
         cartDetail: cart.cartDetail.filter(
           (item) => item.ProductDetail.product_detail_id !== product_detail_id
@@ -150,8 +150,15 @@ const Cart = () => {
       );
       setSelectedProducts(updatedSelectedProducts);
       dispatch(setSelectedItems(updatedSelectedProducts));
-
+      toast.success("Sản phẩm đã được xóa khỏi giỏ hàng!", {
+        autoClose: 3000,
+      });
     } catch (error) {
+      // Show error toast
+      toast.dismiss(confirmToast); // Dismiss the loading toast
+      toast.error("Lỗi khi xóa sản phẩm!", {
+        autoClose: 3000,
+      });
       console.error('Error removing item:', error);
     }
   };
@@ -364,6 +371,7 @@ const Cart = () => {
           </div>
         )}
       </div>
+      <Toaster />
     </div>
   );
 };

@@ -41,6 +41,29 @@ function OrderList() {
             alert("Không thể xác nhận đơn hàng. Vui lòng thử lại.");
         }
     };
+    async function sendCancelOrderEmail(userEmail, orderId) {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail', // Hoặc bất kỳ dịch vụ email nào khác
+            auth: {
+                user: 'your-email@gmail.com', // Thay bằng email của bạn
+                pass: 'your-email-password'   // Thay bằng mật khẩu của bạn hoặc app password
+            }
+        });
+
+        const mailOptions = {
+            from: 'your-email@gmail.com', // Thay bằng email của bạn
+            to: userEmail,
+            subject: `Thông báo hủy đơn hàng #${orderId}`,
+            text: `Đơn hàng #${orderId} của bạn đã bị hủy. Nếu bạn có thắc mắc, vui lòng liên hệ với chúng tôi.`
+        };
+
+        try {
+            await transporter.sendMail(mailOptions);
+            console.log('Email gửi thành công!');
+        } catch (error) {
+            console.error('Lỗi khi gửi email:', error);
+        }
+    }
 
     const cancelOrder = async (orderId) => {
         const order = ordersList.find(order => order.orders_id === orderId);

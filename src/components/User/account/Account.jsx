@@ -96,12 +96,14 @@ const Account = () => {
       if (newAvatar) {
         formDataToSend.append("avatar", newAvatar);
       }
+      console.log(formDataToSend);
       await axios.put(`http://localhost:8000/user/${userId}`, formDataToSend, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
         }
       });
+
       alert("Cập nhật thành công!");
       fetchUser(); // Reload user data after update
     } catch (error) {
@@ -161,7 +163,7 @@ const Account = () => {
               <li>
                 <button
                   onClick={() => setSelectedTab("account")}
-                  className={`text-blue-600 font-semibold hover:text-blue-700 p-2 rounded-md transition duration-300 w-full
+                  className={`text-[#0f3460] hover:text-[#072344] font-semibold p-2 rounded-md transition duration-300 w-full
                     ${selectedTab === "account" ? "bg-blue-100 text-blue-700" : "text-gray-600"}`}
                 >
                   Thông tin tài khoản
@@ -170,7 +172,7 @@ const Account = () => {
               <li>
                 <button
                   onClick={() => setSelectedTab("orders")}
-                  className={`text-blue-600 font-semibold hover:text-blue-700 p-2 rounded-md transition duration-300 w-full
+                  className={`text-[#0f3460] hover:text-[#072344] font-semibold p-2 rounded-md transition duration-300 w-full
                     ${selectedTab === "orders" ? "bg-blue-100 text-blue-700" : "text-gray-600"}`}
                 >
                   Lịch sử đơn hàng
@@ -230,7 +232,7 @@ const Account = () => {
                     <button
                       type="button"
                       onClick={handleUpdateUser}
-                      className="w-full mt-4 bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
+                      className="w-full mt-4 bg-[#0f3460] hover:bg-[#072344] text-white p-2 rounded-md"
                     >
                       Cập nhật thông tin
                     </button>

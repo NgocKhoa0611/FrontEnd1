@@ -6,6 +6,7 @@ import Shop from "./Shop";
 import Annocument from "./Annocument";
 import Wrapper from "./Wrapper";
 import Loading from "../ui/Loading";
+import { ToastContainer } from "react-toastify";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
@@ -55,6 +56,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <ToastContainer />
     </div>
   );
 }

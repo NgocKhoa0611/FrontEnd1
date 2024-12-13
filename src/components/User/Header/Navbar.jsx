@@ -61,12 +61,12 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           {!loading && (
             <div className="hidden md:flex items-center space-x-8">
-              <Link to="/" className="text-gray-700 hover:text-blue-600">
+              <Link to="/" className="text-gray-700 hover:text-[#0f3460]">
                 Trang chủ
               </Link>
 
               <div className="relative group">
-                <Link to="/products" className="text-gray-700 hover:text-blue-600">
+                <Link to="/products" className="text-gray-700 hover:text-[#0f3460]">
                   Sản phẩm
                 </Link>
               </div>
@@ -75,7 +75,7 @@ const Navbar = () => {
                 <div key={parentId} className="relative group">
                   <Link
                     to={`/category/parent/${parentId}`}
-                    className="text-gray-700 hover:text-blue-600"
+                    className="text-gray-700 hover:text-[#0f3460]"
                   >
                     {parentId === "1"
                       ? "Áo"
@@ -101,7 +101,7 @@ const Navbar = () => {
                 </div>
               ))}
 
-              <Link to="/contact" className="text-gray-700 hover:text-blue-600">
+              <Link to="/contact" className="text-gray-700 hover:text-[#0f3460]">
                 Liên hệ
               </Link>
             </div>
@@ -109,9 +109,8 @@ const Navbar = () => {
 
           {/* Mobile Navigation */}
           <div
-            className={`${
-              mobileMenuOpen ? "block" : "hidden"
-            } md:hidden absolute top-full left-0 right-0 bg-white shadow-lg z-50`}
+            className={`${mobileMenuOpen ? "block" : "hidden"
+              } md:hidden absolute top-full left-0 right-0 bg-white shadow-lg z-50`}
           >
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link

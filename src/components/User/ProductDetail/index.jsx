@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux";
 import { addCartDetail } from '../../../../redux/slices/cartslice';
 import { setSelectedItems } from '../../../../redux/slices/orderslice';
 import { toast, Toaster } from 'react-hot-toast';
+import RelateProduct from "./RelateProduct";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -35,6 +36,7 @@ const ProductDetails = () => {
     fetch(`${API_URL}/review/${id}`)  // API lấy bình luận
       .then(response => response.json())
       .then(data => {
+        console.log("Reviews:", data);
         setReviews(data);  // Lưu bình luận vào state
       })
       .catch(error => {
@@ -151,7 +153,6 @@ const ProductDetails = () => {
       return;
     }
 
-    // Kiểm tra token và lấy user_id từ cookie
     const token = document.cookie
       .split("; ")
       .find((row) => row.startsWith("token="))
@@ -159,13 +160,12 @@ const ProductDetails = () => {
 
     if (!token) {
       alert("Bạn cần đăng nhập để bình luận!");
-      navigate("/login"); // Điều hướng người dùng đến trang đăng nhập nếu chưa có token
+      navigate("/login");
       return;
     }
 
-    // Giải mã token để lấy user_id
     const payload = JSON.parse(atob(token.split('.')[1]));
-    const userId = payload.id; // Lấy user_id từ payload (kiểm tra lại payload của token)
+    const userId = payload.id;
 
     if (!userId) {
       alert("Không tìm thấy thông tin người dùng!");
@@ -176,18 +176,18 @@ const ProductDetails = () => {
       const newReview = {
         content: comment,
         date: new Date().toISOString(),
-        product_detail_id: id, // Bạn cần đảm bảo `id` là id chi tiết sản phẩm hiện tại
-        user_id: userId, // Thêm user_id vào đây
+        product_detail_id: id,
+        user_id: userId,
       };
+      console.log(newReview);
 
       const response = await axios.post(`${API_URL}/review`, newReview, {
         headers: {
-          Authorization: `Bearer ${token}`, // Gửi token để xác thực
+          Authorization: `Bearer ${token}`,
         },
       });
 
       if (response.status === 201) {
-        setReviews((prev) => [response.data.review, ...prev]); // Cập nhật danh sách bình luận
         setComment(""); // Reset khung nhập
         toast.success("Gửi bình luận thành công!");
       }
@@ -200,7 +200,6 @@ const ProductDetails = () => {
   const selectedDetail = product.detail?.find(
     (detail) => detail.product_detail_id === Number(selectedDetailId)
   );
-  console.log('detail: ', selectedDetail);
 
   if (loading) {
     return (
@@ -284,7 +283,7 @@ const ProductDetails = () => {
             </button>
             <button
               onClick={addToCart}
-              className="flex-1 bg-[#0f3460] border-2 text-white py-3 rounded-lg hover:bg-[#072344] transition-all duration-200"
+              className="flex-1 bg-[#0f3460] hover:bg-[#072344] border-2 text-white py-3 rounded-lg  transition-all duration-200"
             >
               Thêm vào giỏ hàng
             </button>
@@ -326,7 +325,7 @@ const ProductDetails = () => {
           ></textarea>
           <button
             onClick={handleSendComment}
-            className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            className="mt-4 px-6 py-2 bg-[#0f3460] text-white rounded-lg hover:bg-[#072344]"
           >
             Gửi bình luận
           </button>
@@ -341,10 +340,10 @@ const ProductDetails = () => {
                   <img
                     src={`${API_URL}/avatar/${review?.user.avatar}`}
                     alt="User Avatar"
-                    className="w-10 h-10 rounded-full object-cover"
+                    className="w-10 h-10 rounded-full object-cover mr-3"
                   />
                   <div>
-                    <p className="font-semibold">{review?.user.name}</p>
+                    <p className="font-semibold">{review.user.name}</p>
                     <p className="text-sm text-gray-500">
                       {new Date(review?.date).toLocaleString()}
                     </p>
@@ -360,6 +359,7 @@ const ProductDetails = () => {
       </div>
 
       <Toaster position="top-center" />
+      <RelateProduct />
     </div>
   );
 };

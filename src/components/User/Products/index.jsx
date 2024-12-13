@@ -11,9 +11,7 @@ const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage] = useState(12);
   const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(1000000);
-  const [minSliderValue, setMinSliderValue] = useState(0);
-  const [maxSliderValue, setMaxSliderValue] = useState(1000000);
+  const [maxPrice, setMaxPrice] = useState(10000000);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -56,30 +54,6 @@ const Products = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleMinSliderChange = (e) => {
-    const newMin = Math.min(Number(e.target.value), maxSliderValue);
-    setMinSliderValue(newMin);
-    setMinPrice(newMin);
-  };
-
-  const handleMaxSliderChange = (e) => {
-    const newMax = Math.max(Number(e.target.value), minSliderValue);
-    setMaxSliderValue(newMax);
-    setMaxPrice(newMax);
-  };
-
-  const handleMinPriceChange = (e) => {
-    const newMinPrice = Math.min(Number(e.target.value), maxPrice);
-    setMinPrice(newMinPrice);
-    setMinSliderValue(newMinPrice);
-  };
-
-  const handleMaxPriceChange = (e) => {
-    const newMaxPrice = Math.max(Number(e.target.value), minPrice);
-    setMaxPrice(newMaxPrice);
-    setMaxSliderValue(newMaxPrice);
-  };
-
   if (loading) {
     return <Loading />;
   }
@@ -112,30 +86,31 @@ const Products = () => {
           </select>
         </div>
 
-       
-          {/* Bộ lọc theo khoảng giá */}
-          <div className="price-filter mb-4">
-            <label>Khoảng Giá:</label>
-            <div className="flex items-center">
-              <input
-                type="range"
-                min="0"
-                max="10000000"
-                value={minPrice}
-                onChange={(e) => {
-                  setMinPrice(Number(e.target.value));
-                  setMaxPrice(Math.max(Number(e.target.value), maxPrice));
-                  setCurrentPage(1);
-                }}
-                className="w-full"
-              />
-            </div>
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>{minPrice.toLocaleString('vi-VN')} VND</span>
-              <span>{maxPrice.toLocaleString('vi-VN')} VND</span>
-            </div>
+
+        {/* Bộ lọc theo khoảng giá */}
+        <div className="price-filter mb-4">
+          <label>Khoảng Giá:</label>
+          <div className="flex items-center">
+            <input
+              type="range"
+              min="0"
+              max="10000000"
+              step="50000"
+              value={minPrice}
+              onChange={(e) => {
+                setMinPrice(Number(e.target.value));
+                setMaxPrice(Math.max(Number(e.target.value), maxPrice));
+                setCurrentPage(1);
+              }}
+              className="w-full"
+            />
           </div>
-        </div>  
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>{minPrice.toLocaleString('vi-VN')} VND</span>
+            <span>{maxPrice.toLocaleString('vi-VN')} VND</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -187,11 +162,10 @@ const Products = () => {
                   <button
                     key={index + 1}
                     onClick={() => handlePageChange(index + 1)}
-                    className={`w-10 h-10 rounded-lg ${
-                      currentPage === index + 1
-                        ? 'bg-blue-600 text-white'
-                        : 'border hover:bg-gray-100'
-                    }`}
+                    className={`w-10 h-10 rounded-lg ${currentPage === index + 1
+                      ? 'bg-blue-600 text-white'
+                      : 'border hover:bg-gray-100'
+                      }`}
                   >
                     {index + 1}
                   </button>
@@ -208,7 +182,7 @@ const Products = () => {
             </div>
           )}
         </div>
-      </div>  
+      </div>
     </div>
   );
 };

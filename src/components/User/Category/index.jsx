@@ -20,7 +20,7 @@ export default function Category() {
 
         setCategoryName(categoryResponse.data.category_name);
         setIsHidden(categoryResponse.data.is_hidden);
-        
+
         const visibleProducts = productsResponse.data.filter(product => !product.is_hidden);
         setProducts(visibleProducts);
       } catch (error) {
@@ -50,24 +50,24 @@ export default function Category() {
   }
 
   return (
-    <div className="bg-white">
-      <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Danh mục: {categoryName || 'Đang tải...'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-500">
-            {products.length} sản phẩm
-          </p>
-        </div>
+    <div className="container mx-auto px-4 py-8">
+      {/* Category Header */}
+      <div className="mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Danh mục: {categoryName || 'Đang tải...'}
+        </h2>
+        <p className="mt-2 text-sm text-gray-500">
+          {products.length} sản phẩm
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-          {products.map((product) => (
-            <div key={product.product_id} className="transform transition duration-200 hover:scale-105">
-              <Product shopItems={product} />
-            </div>
-          ))}
-        </div>
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+        {products.map((product) => (
+          <div key={product.product_id} className="transform transition duration-200 hover:scale-105">
+            <Product shopItems={product} />
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Product from "../ui/Product";
 import axios from "axios";
+import { API_URL } from "../../../../configs/varibles";
 import hot from "../../../../public/images/promotional.png";
 
 const Shop = () => {
@@ -42,7 +43,7 @@ const Shop = () => {
   useEffect(() => {
     const fetchHotProducts = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/product/feature");
+        const response = await axios.get(`${API_URL}/product/feature`);
         setShopItems(response.data);
       } catch (error) {
         console.error("Error fetching hot products:", error);
@@ -65,7 +66,7 @@ const Shop = () => {
             <i className="fa-solid fa-caret-right"></i>
           </div>
         </div>
-        
+
         <div>
           <Slider {...settings}>
             {shopItems.map((item, index) => (

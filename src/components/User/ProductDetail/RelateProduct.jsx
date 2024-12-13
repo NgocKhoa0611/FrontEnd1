@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { API_URL } from "../../../../configs/varibles";
 
-const NewArrivals = () => {
+const RelateProduct = () => {
   const [shopItems, setShopItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -66,7 +66,7 @@ const NewArrivals = () => {
               alt="New Products Icon"
               className="w-8 h-8"
             />
-            <h2 className="text-xl md:text-2xl font-bold">Sản phẩm mới</h2>
+            <h2 className="text-xl md:text-2xl font-bold">Sản phẩm liên quan</h2>
           </div>
           <div className="flex items-center gap-2 cursor-pointer">
             <span className="text-sm md:text-base">Xem tất cả</span>
@@ -98,4 +98,4 @@ const NewArrivals = () => {
   );
 };
 
-export default NewArrivals;
+export default RelateProduct;
