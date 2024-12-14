@@ -1,11 +1,13 @@
 'use client';
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
+import { API_URL } from "../../../../configs/varibles";
 
 const Login = () => {
+  const navigate = useNavigate();
   const formik = useFormik({
     initialValues: {
       email: '',
@@ -17,7 +19,7 @@ const Login = () => {
     }),
     onSubmit: async (values, { setSubmitting, setFieldError }) => {
       try {
-        const res = await axios.post(`http://localhost:8000/auth/login`, {
+        const res = await axios.post(`${API_URL}/auth/login`, {
           email: values.email,
           password: values.password,
         });
@@ -27,13 +29,13 @@ const Login = () => {
         }
         const data = res.data;
         document.cookie = `token=${data.token}; path=/; max-age=${60 * 60}`;
-
         const token = data.token;
         const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.role === 'admin') {
-          window.location.href = 'http://localhost:5173';
-        } else {
+        console.log(payload);
+        if (payload.role === 0) {
           window.location.href = '/';
+        } else {
+          setFieldError('general', 'Tài khoản không tồn tại.');
         }
       } catch (error) {
         const status = error.response?.status;

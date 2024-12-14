@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_URL } from "../../../../configs/varibles";
 
 const ResetPassword = () => {
     const location = useLocation();
     const navigate = useNavigate();
-
     const queryParams = new URLSearchParams(location.search);
     const email = queryParams.get('email');
     const token = queryParams.get('token');
@@ -28,7 +28,7 @@ const ResetPassword = () => {
 
         try {
             setLoading(true); // Bắt đầu loading
-            const response = await axios.post('http://localhost:8000/auth/reset-password', {
+            const response = await axios.post(`${API_URL}/auth/reset-password`, {
                 email,
                 token,
                 password,
@@ -139,9 +139,8 @@ const ResetPassword = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className={`flex w-full justify-center rounded-md bg-indigo-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-                                        loading ? 'opacity-50 cursor-not-allowed' : ''
-                                    }`}
+                                    className={`flex w-full justify-center rounded-md bg-indigo-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${loading ? 'opacity-50 cursor-not-allowed' : ''
+                                        }`}
                                 >
                                     {loading ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
                                 </button>

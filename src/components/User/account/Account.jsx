@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { API_URL } from "../../../../configs/varibles";
 
 const Account = () => {
   const [user, setUser] = useState(null);
@@ -33,7 +34,7 @@ const Account = () => {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const userId = payload.id;
 
-      const response = await axios.get(`http://localhost:8000/user/${userId}`, {
+      const response = await axios.get(`${API_URL}/user/${userId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         }
@@ -62,7 +63,7 @@ const Account = () => {
 
       const payload = JSON.parse(atob(token.split('.')[1]));
       const userId = payload.id;
-      const response = await axios.get(`http://localhost:8000/orders/${userId}`, { withCredentials: true });
+      const response = await axios.get(`${API_URL}/orders/${userId}`, { withCredentials: true });
       setOrders(response.data.order);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -97,7 +98,7 @@ const Account = () => {
         formDataToSend.append("avatar", newAvatar);
       }
       console.log(formDataToSend);
-      await axios.put(`http://localhost:8000/user/${userId}`, formDataToSend, {
+      await axios.put(`${API_URL}/user/${userId}`, formDataToSend, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "multipart/form-data",
@@ -124,7 +125,7 @@ const Account = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:8000/orders/${orderId}/cancel`, {
+      const response = await fetch(`${API_URL}/orders/${orderId}/cancel_user`, {
         method: 'PUT',
       });
       if (!response.ok) throw new Error("Không thể hủy đơn hàng");

@@ -41,29 +41,6 @@ function OrderList() {
             alert("Không thể xác nhận đơn hàng. Vui lòng thử lại.");
         }
     };
-    async function sendCancelOrderEmail(userEmail, orderId) {
-        const transporter = nodemailer.createTransport({
-            service: 'gmail', // Hoặc bất kỳ dịch vụ email nào khác
-            auth: {
-                user: 'your-email@gmail.com', // Thay bằng email của bạn
-                pass: 'your-email-password'   // Thay bằng mật khẩu của bạn hoặc app password
-            }
-        });
-
-        const mailOptions = {
-            from: 'your-email@gmail.com', // Thay bằng email của bạn
-            to: userEmail,
-            subject: `Thông báo hủy đơn hàng #${orderId}`,
-            text: `Đơn hàng #${orderId} của bạn đã bị hủy. Nếu bạn có thắc mắc, vui lòng liên hệ với chúng tôi.`
-        };
-
-        try {
-            await transporter.sendMail(mailOptions);
-            console.log('Email gửi thành công!');
-        } catch (error) {
-            console.error('Lỗi khi gửi email:', error);
-        }
-    }
 
     const cancelOrder = async (orderId) => {
         const order = ordersList.find(order => order.orders_id === orderId);
@@ -111,9 +88,9 @@ function OrderList() {
     };
 
     return (
-        <div className="orders-table">
-            <h3 className="title-page">Danh sách đơn hàng</h3>
-            <form className="d-flex" role="search">
+        <div className="table-orders">
+            <h3 className="title-page-orders">Danh sách đơn hàng</h3>
+            <form className="search-flex-orders" role="search">
                 <input className="form-control-search-orders" type="search" placeholder="Tìm kiếm đơn hàng..." aria-label="Search" />
                 <button className="search-btn-orders" type="submit">Tìm kiếm</button>
             </form>
@@ -123,6 +100,7 @@ function OrderList() {
                         <th>ID đơn hàng</th>
                         <th>Ngày đặt hàng</th>
                         <th>Tổng tiền</th>
+                        <th>Địa chỉ</th>
                         <th>Trạng thái đơn hàng</th>
                         <th>Ngày thanh toán</th>
                         <th>Phương thức thanh toán</th>
@@ -136,6 +114,7 @@ function OrderList() {
                             <td>{order.orders_id}</td>
                             <td>{new Date(order.order_date).toLocaleDateString()}</td>
                             <td>{order.total_price.toLocaleString('vi-VN')} VND</td>
+                            <td>{order.address}</td>
                             <td>{order.order_status}</td>
                             <td>{order.payment_date ? new Date(order.payment_date).toLocaleDateString() : "Chưa thanh toán"}</td>
                             <td>{order.payment_method}</td>
@@ -153,14 +132,14 @@ function OrderList() {
                                 )}
                                 {order.order_status === "Chờ xử lý" ? (
                                     <button
-                                        className="cancel-btn"
+                                        className="cancel-btn text-white bg-red-500 px-3 py-1 rounded hover:bg-red-600 transition"
                                         onClick={() => cancelOrder(order.orders_id)}
                                     >
                                         Hủy đơn
                                     </button>
                                 ) : (
                                     <button
-                                        className="cancel-btn"
+                                        className="cancel-btn text-gray-500 bg-gray-200 px-3 py-1 rounded cursor-not-allowed"
                                         disabled
                                     >
                                         Hủy đơn

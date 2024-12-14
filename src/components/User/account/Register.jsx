@@ -3,6 +3,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../../../../configs/varibles";
 
 const Register = () => {
   const [success, setSuccess] = useState(false);
@@ -38,7 +39,7 @@ const Register = () => {
     }),
     onSubmit: async (values) => {
       try {
-        const response = await axios.post("http://localhost:8000/auth/register", {
+        const response = await axios.post(`${API_URL}/auth/register`, {
           name: values.name,
           phone: values.phone,
           address: values.address,

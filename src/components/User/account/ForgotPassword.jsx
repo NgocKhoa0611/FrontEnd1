@@ -3,6 +3,7 @@ import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
+import { API_URL } from "../../../../configs/varibles";
 
 const ForgotPassword = () => {
     const formik = useFormik({
@@ -14,7 +15,7 @@ const ForgotPassword = () => {
         }),
         onSubmit: async (values, { setSubmitting, setFieldError }) => {
             try {
-                const response = await axios.post(`http://localhost:8000/auth/forgot-password`, {
+                const response = await axios.post(`${API_URL}/auth/forgot-password`, {
                     email: values.email,
                 });
 

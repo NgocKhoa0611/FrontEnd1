@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios'; // Import axios
 import './Users.css';
+import { API_URL } from "../../../../configs/varibles";
 
 const UserTable = () => {
   const [users, setUsers] = useState([]);
@@ -11,7 +12,7 @@ const UserTable = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/user');
+      const response = await axios.get(`${API_URL}/user`);
       setUsers(response.data);
     } catch (error) {
       console.error("Có lỗi khi lấy danh sách người dùng!", error);
@@ -21,7 +22,7 @@ const UserTable = () => {
   const handleDeleteUser = async (userId) => {
     if (window.confirm("Bạn có chắc chắn muốn xóa người dùng này không?")) {
       try {
-        await axios.delete(`http://localhost:8000/user/${userId}`);
+        await axios.delete(`${API_URL}/user/${userId}`);
         setUsers(prevUsers => prevUsers.filter(user => user.user_id !== userId));
         alert("Xóa người dùng thành công!");
       } catch (error) {
@@ -112,7 +113,9 @@ const UserTable = () => {
             <tr key={user.user_id}>
               <td>{user.user_id}</td>
               <td>{user.name}</td>
-              <td><img src={user.avatar} alt="Avatar" width="50" /></td>
+              <td className="flex justify-center items-center">
+                <img src={`${API_URL}/avatar/${user.avatar || "default-avatar.jpg"}`} alt="Avatar" width="60" />
+              </td>
               <td>{user.email}</td>
               <td>{user.role === 0 ? 'Admin' : 'User'}</td>
               <td>{user.phone}</td>
