@@ -4,7 +4,7 @@ import { API_URL } from "../../../../configs/varibles";
 
 const Account = () => {
   const [user, setUser] = useState(null);
-  const [selectedTab, setSelectedTab] = useState("account");
+  const [selectedTab, setSelectedTab] = useState("orders");
   const [newAvatar, setNewAvatar] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
