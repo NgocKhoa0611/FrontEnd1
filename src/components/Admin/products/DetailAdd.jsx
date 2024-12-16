@@ -64,15 +64,15 @@ function DetailAdd() {
 
     try {
         // Gửi dữ liệu tới server
-        await axios.post(`http://localhost:8000/productdetail${id}`, formData, {
+        await axios.post("http://localhost:8000/detail", formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
         });
         alert("Đã thêm chi tiết sản phẩm thành công!");
-        navigate(`/admin/productlist/${id}`);
+        navigate(`/admin/productlist/${id}/details`);
     } catch (error) {
-        console.error("Lỗi khi thêm chi tiết sản phẩm:", error.response ? error.response.data : error);
+        console.error("Lỗi khi thêm chi tiết sản phẩm:", error);
         alert("Có lỗi xảy ra. Vui lòng thử lại!");
     }
 };
@@ -155,7 +155,7 @@ function DetailAdd() {
       <div className="mb-3">
         <button className="add-btn-products" type="submit">Thêm chi tiết</button>
         &nbsp;
-        <Link to={`/admin/productlist/${id}`} className="btn-products-list">Danh sách chi tiết</Link>
+        <Link to={`/admin/productlist/${id}/details`} className="btn-products-list">Danh sách chi tiết</Link>
       </div>
     </form>
   );

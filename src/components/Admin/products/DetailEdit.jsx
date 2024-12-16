@@ -77,12 +77,12 @@ function ProductEdit() {
       <div className='col'>Giá khuyến mãi:
         <input value={product.price_promotion} type="number" className="form-control" name="price_promotion" onChange={handleChange} />
       </div>
-      <div className='col'>Hình ảnh:
+      {/* <div className='col'>Hình ảnh:
         <input value={product.img_url} type="text" className="form-control" name="img_url" onChange={handleChange} />
-      </div>
+      </div> */}
       <div className="mb-3">
         <button className="edit-btn-products" type="submit">Sửa sản phẩm</button> &nbsp;
-        <Link to={`/admin/productlist`} className="btn-products-list">Danh sách sản phẩm</Link>
+        <Link to={`/product`} className="btn-products-list">Danh sách sản phẩm</Link>
       </div>
     </form>
   );

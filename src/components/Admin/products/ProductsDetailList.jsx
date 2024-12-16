@@ -9,7 +9,6 @@ function ProductDetailList() {
   const [sortOrder, setSortOrder] = useState('asc');
   const productsPerPage = 10; // Số sản phẩm trên mỗi trang
   const { id } = useParams();
-  // eslint-disable-next-line no-unused-vars
   const imageUrl = `http://localhost:8000/img/${detail[0]?.productImage?.img_url || 'default-image.jpg'}`;
 
   const fetchProductDetail = async () => {
@@ -81,10 +80,7 @@ function ProductDetailList() {
     <div className="products-table">
       <h3 className="title-page">Danh sách chi tiết sản phẩm</h3>
       <div className="d-flex justify-content-between align-items-center mb-3">
-      <Link to={`/product/${id}/add-detail`} id="mb-2" className="add-btn-products">
-  Thêm chi tiết
-</Link>
-
+        <Link to={`add-detail`} id="mb-2" className="add-btn-products">Thêm chi tiết</Link>
       </div>
 
       <table className="table table-hover">
@@ -117,7 +113,7 @@ function ProductDetailList() {
                   )}
                 </td>
                 <td>
-                  <Link to={`/admin/productlist/edit-product/${detailItem.product_detail_id}`} className="edit-btn"> Sửa</Link>
+                  <Link to={`/product/edit-product/${detailItem.product_detail_id}`} className="edit-btn"> Sửa</Link>
                   <button
                     className={`hide-btn-products ${detailItem.is_hidden ? 'show-text' : ''}`}
                     onClick={() => hideProduct(detailItem.product_detail_id, detailItem.is_hidden)}
