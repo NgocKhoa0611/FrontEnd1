@@ -8,6 +8,7 @@ function ProductList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchKeyword, setSearchKeyword] = useState("");
   const [sortOrder, setSortOrder] = useState('asc');
+  
   const productsPerPage = 5;
 
   const fetchProduct = async () => {

@@ -1,15 +1,15 @@
-import Head from "./Head"
-import Search from "./Search"
-import Navbar from "./Navbar"
+import Head from "./Head";
+import Search from "./Search";
+import Navbar from "./Navbar";
 
 const Header = () => {
   return (
-    <>
+    <section className="sticky top-0 z-10 bg-white shadow-md">
       <Head />
-      <Search/>
+      <Search />
       <Navbar />
-    </>
-  )
-}
+    </section>
+  );
+};
 
-export default Header
+export default Header;

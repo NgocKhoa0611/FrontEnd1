@@ -82,7 +82,7 @@ function ProductEdit() {
       </div> */}
       <div className="mb-3">
         <button className="edit-btn-products" type="submit">Sửa sản phẩm</button> &nbsp;
-        <Link to={`/product`} className="btn-products-list">Danh sách sản phẩm</Link>
+        <Link to={`/admin/productlist`} className="btn-products-list">Danh sách sản phẩm</Link>
       </div>
     </form>
   );
