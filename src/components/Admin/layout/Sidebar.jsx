@@ -1,11 +1,15 @@
-// src/components/layout/Sidebar.js
 import React from 'react';
 import { Link } from 'react-router-dom'; // Import Link từ React Router
+import { useAuth } from '../../../context/AuthContext'; // Import AuthContext
 import logo from '../assets/images/logo1.png';
-import { useNavigate } from 'react-router-dom';
 import './MainContent.css';
 
 function Sidebar() {
+  const { logout } = useAuth(); // Get the logout function from AuthContext
+
+  const handleLogout = () => {
+    logout(); // Call the logout method to clear user session and redirect
+  };
 
   return (
     <div className="sidebar">
@@ -21,8 +25,8 @@ function Sidebar() {
           <li><Link to={`/admin/userslist`}>Quản lí người dùng</Link></li>
         </ul>
       </nav>
-      <button className="logout-btn">Đăng xuất</button>
-    </div >
+      <button className="logout-btn" onClick={handleLogout}>Đăng xuất</button>
+    </div>
   );
 }
 

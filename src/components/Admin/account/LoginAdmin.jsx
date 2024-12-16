@@ -1,11 +1,29 @@
 'use client';
-import { Link } from "react-router-dom";
-import React from 'react';
+import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 
-const Login = () => {
+const LoginAdmin = () => {
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Check if the token exists in cookies
+        const getTokenFromCookie = () => {
+            const cookie = document.cookie
+                .split('; ')
+                .find(row => row.startsWith('token='));
+            return cookie ? cookie.split('=')[1] : null;
+        };
+
+        const token = getTokenFromCookie();
+
+        if (!token) {
+            navigate('/admin/login'); // Redirect if no token
+        }
+    }, [navigate]);
+
     const formik = useFormik({
         initialValues: {
             email: '',
@@ -15,7 +33,6 @@ const Login = () => {
             email: Yup.string().email('Email không hợp lệ').required('Bắt buộc'),
             password: Yup.string().required('Bắt buộc'),
         }),
-
         onSubmit: async (values, { setSubmitting, setFieldError }) => {
             try {
                 const res = await axios.post(`http://localhost:8000/auth/login`, {
@@ -26,17 +43,16 @@ const Login = () => {
                 if (res.status !== 200) {
                     throw new Error(res.data.message || 'Đăng nhập thất bại');
                 }
-                // Lưu token vào cookie
+
                 const data = res.data;
                 document.cookie = `token=${data.token}; path=/; max-age=${60 * 60}`;
 
-                // Chuyển trang theo role
                 const token = data.token;
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                if (payload.role === 'admin') {
-                    window.location.href = 'http://localhost:5173/admin'; // Admin page route
+                if (payload.role === 1) {
+                    window.location.href = 'http://localhost:5173/admin';
                 } else {
-                    window.location.href = '/';
+                    window.location.href = '/admin/login';
                 }
             } catch (error) {
                 const status = error.response?.status;
@@ -49,10 +65,10 @@ const Login = () => {
                 setSubmitting(false);
             }
         }
+    });
 
-    })
     return (
-        <div className="relative h-screen bg-gradient-to-r from-white to-blue-200 overflow-hidden"> {/* Light blue gradient background */}
+        <div className="relative h-screen bg-gradient-to-r from-white to-blue-200 overflow-hidden">
             <div className="absolute top-20 left-2 w-[500px] h-[500px] bg-[#D1208A80] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob"></div>
             <div className="absolute top-20 right-32 w-[500px] h-[500px] bg-[#FFB20080] rounded-full mix-blend-multiply filter blur-[150px] opacity-70 animate-blob animation-delay-2000"></div>
             <div className="flex min-h-full flex-col justify-center sm:px-6 lg:px-8">
@@ -66,7 +82,6 @@ const Login = () => {
                         ĐĂNG NHẬP
                     </h2>
                 </div>
-
                 <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
                     <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
                         <form onSubmit={formik.handleSubmit} className="space-y-6">
@@ -90,7 +105,6 @@ const Login = () => {
                                     ) : null}
                                 </div>
                             </div>
-
                             <div>
                                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                                     Mật khẩu
@@ -108,7 +122,6 @@ const Login = () => {
                                     ) : null}
                                 </div>
                             </div>
-
                             <div className="flex items-center justify-end">
                                 <div className="text-sm">
                                     <Link className="font-medium text-indigo-600 hover:text-indigo-500" to="/forgot-password">
@@ -116,7 +129,6 @@ const Login = () => {
                                     </Link>
                                 </div>
                             </div>
-
                             <button
                                 type="submit"
                                 className="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -139,4 +151,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default LoginAdmin;

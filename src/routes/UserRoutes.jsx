@@ -16,6 +16,7 @@ import Account from "../pages/User/account.jsx";
 import CategoryParent from "../components/User/Category/parentID.jsx";
 import ForgotPassword from "../components/User/account/ForgotPassword.jsx";
 import ResetPassword from "../components/User/account/ResetPassword.jsx";
+import SuccessPage from "../pages/User/SuccessPage.jsx";
 
 const UserRoutes = () => {
     return (
@@ -36,6 +37,7 @@ const UserRoutes = () => {
                 <Route path="/products" element={<Products />} />
                 <Route path="/account" element={<Account />} />
                 <Route path="/account/:userId" element={<Account />} />
+                <Route path="/successpage" element={<SuccessPage />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
             <Footer /> {/* Đặt Footer bên ngoài Routes */}
