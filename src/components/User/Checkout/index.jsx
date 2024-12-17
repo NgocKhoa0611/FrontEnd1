@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { API_URL } from "../../../../configs/varibles";
 import { useSelector, useDispatch } from 'react-redux';
 import { clearSelectedItems } from '../../../../redux/slices/orderslice';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './index.css';
 
@@ -10,9 +11,14 @@ const Checkout = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const cartItems = useSelector((state) => state.order.selectedItems);
   const totalPrice = useSelector((state) => state.order.totalPrice);
+  const [cities, setCities] = useState([]);
+  const [selectedCityId, setSelectedCityId] = useState("");
+  const [shippingFee, setShippingFee] = useState(0);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     fullName: '',
+    code: '',
     phoneNumber: '',
     address: '',
     city: '',
@@ -22,39 +28,20 @@ const Checkout = () => {
 
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [user, setUser] = useState(null);
-  const shippingFee = 0;
   const total = totalPrice + shippingFee;
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchData = async () => {
       try {
-        const token = document.cookie
-          .split("; ")
-          .find(row => row.startsWith("token="))
-          ?.split("=")[1];
-
-        if (!token) return;
-
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const userId = payload.id;
-
-        const response = await axios.get(`http://localhost:8000/user/${userId}`, { withCredentials: true });
-        setUser(response.data);
-        setFormData(prev => ({
-          ...prev,
-          email: response.data.email,
-          fullName: response.data.name,
-          phoneNumber: response.data.phone,
-          address: response.data.address || '',
-          city: response.data.city || '',
-        }));
+        await fetchUserData();
+        await fetchCities();
       } catch (error) {
-        console.error('Error fetching user data:', error);
-        setErrorMessage('Không thể lấy thông tin người dùng.');
+        console.error("Error fetching data:", error);
+        setErrorMessage('Không thể lấy thông tin người dùng hoặc thành phố.');
       }
     };
 
-    fetchUserData();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -66,6 +53,56 @@ const Checkout = () => {
     }
   }, [orderSuccess]);
 
+  const fetchUserData = async () => {
+    try {
+      const token = document.cookie
+        .split("; ")
+        .find(row => row.startsWith("token="))
+        ?.split("=")[1];
+
+      if (!token) return;
+
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const userId = payload.id;
+
+      const response = await axios.get(`${API_URL}/user/${userId}`, { withCredentials: true });
+      setUser(response.data);
+      setFormData(prev => ({
+        ...prev,
+        email: response.data.email,
+        fullName: response.data.name,
+        phoneNumber: response.data.phone,
+        address: response.data.address || '',
+        city: response.data.city || '',
+      }));
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setErrorMessage('Không thể lấy thông tin người dùng.');
+    }
+  };
+
+  const fetchCities = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/cities`);
+      setCities(response.data);
+    } catch (error) {
+      console.error("Error fetching cities:", error);
+    }
+  };
+
+  const handleCityChange = (e) => {
+    const selectedId = e.target.value;
+    setSelectedCityId(selectedId)
+
+    const selectedCity = cities.find((city) => city.city_id === parseInt(selectedId));
+    if (selectedCity) {
+      setShippingFee(selectedCity.shipping_fee);
+      console.log(shippingFee);
+
+    } else {
+      setShippingFee(0);
+    }
+  }
   const handleChange = (event) => {
     const { name, value } = event.target;
     setFormData(prev => ({
@@ -74,12 +111,23 @@ const Checkout = () => {
     }));
   };
 
+  function generateRandomCode() {
+    const randomNumber = Math.floor(Math.random() * 1000000); // Tạo số ngẫu nhiên
+    const randomCode = 'F' + randomNumber; // Thêm chữ 'F' vào đầu số
+    return randomCode;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+    if (formData.paymentMethod === 'VNPAY') {
+      await handleVNPAYPayment();
+      return;
+    }
     try {
+      const code = generateRandomCode();
       const orderData = {
-        total_price: cartItems.reduce((total, item) => total + item.price * item.quantity, 0),
+        total_price: total,
+        code: code,
         payment_method: formData.paymentMethod,
         shipping_address: formData.address,
         order_status: 'Chờ xử lý',
@@ -89,6 +137,7 @@ const Checkout = () => {
           payment_date: null,
           total_amount: item.price * item.quantity,
         })),
+        city_id: selectedCityId,
       };
 
       const response = await axios.post('http://localhost:8000/orders', orderData, {
@@ -101,10 +150,11 @@ const Checkout = () => {
       setErrorMessage('');
       setFormData({
         email: '',
+        code: '',
         fullName: '',
         phoneNumber: '',
         address: '',
-        city: '',
+        city_id: '',
         notes: '',
         paymentMethod: 'Tiền mặt',
         payment_date: '',
@@ -117,9 +167,47 @@ const Checkout = () => {
         )
       );
       dispatch(clearSelectedItems());
+      navigate('/successpage');
     } catch (error) {
       console.error('Error creating order:', error);
       setErrorMessage('Đã có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.');
+    }
+  };
+
+  const handleVNPAYPayment = async () => {
+    try {
+      const code = generateRandomCode();
+      const orderData = {
+        total_price: total,
+        code: code,
+        shipping_address: formData.address,
+        payment_method: formData.paymentMethod,
+        city_id: selectedCityId,
+        order_details: cartItems.map((item) => ({
+          product_detail_id: item.product_detail_id,
+          quantity: item.quantity,
+          total_amount: item.price * item.quantity,
+        })),
+        order_status: 'Chờ xử lý', // Trạng thái khi sử dụng VNPAY
+      };
+
+      // Gửi dữ liệu đơn hàng để lưu vào cơ sở dữ liệu
+      const orderResponse = await axios.post('http://localhost:8000/orders', orderData, {
+        withCredentials: true,
+      });
+
+      console.log('Order created successfully:', orderResponse.data);
+
+      // Sau khi lưu thành công, gửi yêu cầu VNPAY
+      const paymentResponse = await axios.post(`${API_URL}/payment/create_payment_url`, orderData, {
+        withCredentials: true,
+      });
+
+      const redirectUrl = paymentResponse.data.redirectUrl;
+      window.location.href = redirectUrl;
+    } catch (error) {
+      console.error('Error creating order or payment URL:', error);
+      setErrorMessage('Có lỗi xảy ra khi thực hiện thanh toán qua VNPAY.');
     }
   };
 
@@ -176,7 +264,6 @@ const Checkout = () => {
                     />
                   </div>
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Số điện thoại</label>
                   <input
@@ -188,7 +275,6 @@ const Checkout = () => {
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Địa chỉ</label>
                   <input
@@ -200,7 +286,22 @@ const Checkout = () => {
                     className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Chọn thành phố</label>
+                  <select
+                    value={selectedCityId}
+                    onChange={handleCityChange}
+                    className="w-full p-3 border rounded-lg"
+                  >
+                    <option value="">Chọn thành phố</option>
+                    {cities.map((city) => (
+                      <option key={city.city_id} value={city.city_id}>
+                        {city.city_name}
+                      </option>
+                    ))}
+                  </select>
 
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
                   <textarea
@@ -234,12 +335,12 @@ const Checkout = () => {
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="bankTransfer"
-                    checked={formData.paymentMethod === 'bankTransfer'}
+                    value="VNPAY"
+                    checked={formData.paymentMethod === 'VNPAY'}
                     onChange={handleChange}
                     className="w-4 h-4 text-blue-600"
                   />
-                  <span>Thanh toán qua thẻ ATM</span>
+                  <span>Thanh toán qua VNPAY</span>
                 </label>
               </div>
             </div>
@@ -296,6 +397,13 @@ const Checkout = () => {
                   className="w-full bg-[#0f3460] hover:bg-[#072344] text-white py-3 rounded-lg transition-colors"
                 >
                   Đặt hàng
+                </button>
+                <button
+                  type="button"
+                  onClick={handleVNPAYPayment}
+                  className="w-full bg-[#0f3460] hover:bg-[#072344] text-white py-3 rounded-lg transition-colors"
+                >
+                  Test VNPAY
                 </button>
                 <Link
                   to="/cart"
